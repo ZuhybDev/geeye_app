@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getUserList = `-- name: GetUserList :many
@@ -41,4 +43,43 @@ func (q *Queries) GetUserList(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const newUser = `-- name: NewUser :one
+INSERT INTO users (
+ id, name, email, password, phone_number, image_url, restaurant_id ,created_at, updated_at
+) VALUES ( $1, $2, $3, $4, $5, $6,null, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) RETURNING id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at
+`
+
+type NewUserParams struct {
+	ID          pgtype.UUID `json:"id"`
+	Name        string      `json:"name"`
+	Email       string      `json:"email"`
+	Password    string      `json:"password"`
+	PhoneNumber pgtype.Text `json:"phone_number"`
+	ImageUrl    pgtype.Text `json:"image_url"`
+}
+
+func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, newUser,
+		arg.ID,
+		arg.Name,
+		arg.Email,
+		arg.Password,
+		arg.PhoneNumber,
+		arg.ImageUrl,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.PhoneNumber,
+		&i.ImageUrl,
+		&i.RestaurantID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

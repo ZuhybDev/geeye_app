@@ -9,10 +9,11 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Use Pool instead of *sql.DB for better performance with Fiber
+// shared all across the app
 var DBPool *pgxpool.Pool
 
 func Connect() {
+	//load the Env
 	godotenv.Load()
 	dbURL := os.Getenv("DATABASE_URL")
 

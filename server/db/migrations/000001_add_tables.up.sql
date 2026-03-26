@@ -1,20 +1,23 @@
 -- DATABASE SCHEMA: Delivery App
 
+-- 0. Enable UUID support
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- 1. Core Entities
 CREATE TABLE users (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20),
     image_url TEXT,
-    restaurant_id UUID, -- Optional: If user is an owner
+    restaurant_id UUID REFERENCES restaurants(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE user_addresses (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     city VARCHAR(100),
     state VARCHAR(100),
@@ -24,17 +27,17 @@ CREATE TABLE user_addresses (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Logistics
+-- 2. Logistics --did
 CREATE TABLE cars (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100), -- e.g., Toyota Camry
     color VARCHAR(50),
     number_plate VARCHAR(20) UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE delivers (
-    id UUID PRIMARY KEY,
+CREATE TABLE deliver (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -46,8 +49,8 @@ CREATE TABLE delivers (
 );
 
 CREATE TABLE driver_locations (
-    id UUID PRIMARY KEY,
-    driver_id UUID REFERENCES delivers(id) ON DELETE CASCADE,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    driver_id UUID REFERENCES deliver(id) ON DELETE CASCADE,
     order_id UUID, -- Link to active order
     latitude DECIMAL(9,6),
     longitude DECIMAL(9,6),
@@ -57,14 +60,14 @@ CREATE TABLE driver_locations (
 
 -- 3. Merchants
 CREATE TABLE restaurants (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE res_addresses (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
     street_name TEXT,
     city VARCHAR(100),
@@ -76,7 +79,7 @@ CREATE TABLE res_addresses (
 );
 
 CREATE TABLE products (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -92,9 +95,9 @@ CREATE TABLE products (
 
 -- 4. Transactions
 CREATE TABLE orders (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id),
-    deliver_id UUID REFERENCES delivers(id),
+    deliver_id UUID REFERENCES deliver(id),
     restaurant_id UUID REFERENCES restaurants(id),
     total_price DECIMAL(10,2) NOT NULL,
     pickup_location TEXT,
@@ -107,7 +110,7 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE order_items (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
     product_id UUID REFERENCES products(id),
     quantity INT NOT NULL,
@@ -116,7 +119,7 @@ CREATE TABLE order_items (
 );
 
 CREATE TABLE payments (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id),
     order_id UUID REFERENCES orders(id),
     amount DECIMAL(10,2),

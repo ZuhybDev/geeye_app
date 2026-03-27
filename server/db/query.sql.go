@@ -11,6 +11,29 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkPassword = `-- name: CheckPassword :one
+SELECT id, name, email, password FROM users WHERE email = $1
+`
+
+type CheckPasswordRow struct {
+	ID       pgtype.UUID `json:"id"`
+	Name     string      `json:"name"`
+	Email    string      `json:"email"`
+	Password string      `json:"password"`
+}
+
+func (q *Queries) CheckPassword(ctx context.Context, email string) (CheckPasswordRow, error) {
+	row := q.db.QueryRow(ctx, checkPassword, email)
+	var i CheckPasswordRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+	)
+	return i, err
+}
+
 const getUserList = `-- name: GetUserList :many
 SELECT id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at FROM users ORDER BY name
 `
@@ -47,27 +70,39 @@ func (q *Queries) GetUserList(ctx context.Context) ([]User, error) {
 
 const newUser = `-- name: NewUser :one
 INSERT INTO users (
- id, name, email, password, phone_number, image_url, restaurant_id ,created_at, updated_at
-) VALUES ( $1, $2, $3, $4, $5, $6,null, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP ) RETURNING id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at
+  name,
+  email,
+  password,
+  phone_number,
+  image_url,
+  restaurant_id
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6
+) RETURNING id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at
 `
 
 type NewUserParams struct {
-	ID          pgtype.UUID `json:"id"`
-	Name        string      `json:"name"`
-	Email       string      `json:"email"`
-	Password    string      `json:"password"`
-	PhoneNumber pgtype.Text `json:"phone_number"`
-	ImageUrl    pgtype.Text `json:"image_url"`
+	Name         string      `json:"name"`
+	Email        string      `json:"email"`
+	Password     string      `json:"password"`
+	PhoneNumber  pgtype.Text `json:"phone_number"`
+	ImageUrl     pgtype.Text `json:"image_url"`
+	RestaurantID pgtype.UUID `json:"restaurant_id"`
 }
 
 func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, newUser,
-		arg.ID,
 		arg.Name,
 		arg.Email,
 		arg.Password,
 		arg.PhoneNumber,
 		arg.ImageUrl,
+		arg.RestaurantID,
 	)
 	var i User
 	err := row.Scan(

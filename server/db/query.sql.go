@@ -11,27 +11,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const checkPassword = `-- name: CheckPassword :one
-SELECT id, name, email, password FROM users WHERE email = $1
+const checkEmail = `-- name: CheckEmail :one
+SELECT email FROM users WHERE email = $1
 `
 
-type CheckPasswordRow struct {
-	ID       pgtype.UUID `json:"id"`
-	Name     string      `json:"name"`
-	Email    string      `json:"email"`
-	Password string      `json:"password"`
-}
-
-func (q *Queries) CheckPassword(ctx context.Context, email string) (CheckPasswordRow, error) {
-	row := q.db.QueryRow(ctx, checkPassword, email)
-	var i CheckPasswordRow
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.Email,
-		&i.Password,
-	)
-	return i, err
+func (q *Queries) CheckEmail(ctx context.Context, email string) (string, error) {
+	row := q.db.QueryRow(ctx, checkEmail, email)
+	err := row.Scan(&email)
+	return email, err
 }
 
 const getUserList = `-- name: GetUserList :many
@@ -115,6 +102,79 @@ func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (User, error) 
 		&i.RestaurantID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET name = coalesce($1, name),
+    email = coalesce($2, email),
+    password = coalesce($3, password),
+    phone_number = coalesce($4, phone_number),
+    image_url = coalesce($5, image_url),
+    restaurant_id = coalesce($6, restaurant_id)
+WHERE id = $7 RETURNING name, email, phone_number, image_url, restaurant_id
+`
+
+type UpdateUserParams struct {
+	Name         pgtype.Text `json:"name"`
+	Email        pgtype.Text `json:"email"`
+	Password     pgtype.Text `json:"password"`
+	PhoneNumber  pgtype.Text `json:"phone_number"`
+	ImageUrl     pgtype.Text `json:"image_url"`
+	RestaurantID pgtype.UUID `json:"restaurant_id"`
+	ID           pgtype.UUID `json:"id"`
+}
+
+type UpdateUserRow struct {
+	Name         string      `json:"name"`
+	Email        string      `json:"email"`
+	PhoneNumber  pgtype.Text `json:"phone_number"`
+	ImageUrl     pgtype.Text `json:"image_url"`
+	RestaurantID pgtype.UUID `json:"restaurant_id"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.Name,
+		arg.Email,
+		arg.Password,
+		arg.PhoneNumber,
+		arg.ImageUrl,
+		arg.RestaurantID,
+		arg.ID,
+	)
+	var i UpdateUserRow
+	err := row.Scan(
+		&i.Name,
+		&i.Email,
+		&i.PhoneNumber,
+		&i.ImageUrl,
+		&i.RestaurantID,
+	)
+	return i, err
+}
+
+const userLogin = `-- name: UserLogin :one
+SELECT id, name, email, password FROM users WHERE email = $1
+`
+
+type UserLoginRow struct {
+	ID       pgtype.UUID `json:"id"`
+	Name     string      `json:"name"`
+	Email    string      `json:"email"`
+	Password string      `json:"password"`
+}
+
+func (q *Queries) UserLogin(ctx context.Context, email string) (UserLoginRow, error) {
+	row := q.db.QueryRow(ctx, userLogin, email)
+	var i UserLoginRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
 	)
 	return i, err
 }

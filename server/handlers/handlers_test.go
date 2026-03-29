@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// ✅ Interface (exported method)
 type DBQueries interface {
 	NewUser(ctx context.Context, arg db.NewUserParams) (db.User, error)
 }
@@ -66,7 +65,7 @@ func (h *Handle) NewUser(c fiber.Ctx) error {
 	})
 }
 
-// ✅ TEST
+// ✅ TEST For this
 func TestNewUser(t *testing.T) {
 	mockDB := &dbMock{}
 	h := &Handle{Query: mockDB}

@@ -25,7 +25,7 @@ func (h *Handler) Login(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Email and password required"})
 	}
 
-	res, err := h.Query.CheckPassword(c.Context(), lgnUser.Email)
+	res, err := h.Query.UserLogin(c.Context(), lgnUser.Email)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid credentials"})

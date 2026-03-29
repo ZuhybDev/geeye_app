@@ -50,6 +50,13 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
+	//check email
+	_, err := h.Query.CheckEmail(c.Context(), req.Email)
+
+	if err == nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Email already taken."})
+	}
+
 	// 1. Hash the password (using bcrypt)
 	hashedPass, err := utils.HashedPassword([]byte(req.Password))
 

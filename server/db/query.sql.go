@@ -21,6 +21,16 @@ func (q *Queries) CheckEmail(ctx context.Context, email string) (string, error) 
 	return email, err
 }
 
+const getUserById = `-- name: GetUserById :one
+SELECT id FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getUserById, id)
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getUserList = `-- name: GetUserList :many
 SELECT id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at FROM users ORDER BY name
 `

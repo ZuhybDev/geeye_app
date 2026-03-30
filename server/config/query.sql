@@ -34,3 +34,6 @@ WHERE id = sqlc.arg(id) RETURNING name, email, phone_number, image_url, restaura
 
 -- name: CheckEmail :one
 SELECT email FROM users WHERE email = $1;
+
+-- name: GetUserById :one
+SELECT id FROM users WHERE id = $1;

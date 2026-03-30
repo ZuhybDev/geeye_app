@@ -12,12 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// helper
-type Handler struct {
-	Query     *db.Queries
-	JwtSecret string
-}
-
 // function get all users
 func (h *Handler) GetListUsers(c fiber.Ctx) error {
 	ctx := c.Context()
@@ -71,17 +65,6 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: hashedPass,
-		// PhoneNumber: pgtype.Text{
-		// 	String: "",
-		// 	Valid:  false,
-		// },
-		// ImageUrl: pgtype.Text{
-		// 	String: "",
-		// 	Valid:  false,
-		// },
-		// RestaurantID: pgtype.UUID{
-		// 	Valid: false,
-		// },
 	}
 
 	// Handle optional fields

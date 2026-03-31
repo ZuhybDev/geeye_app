@@ -101,7 +101,7 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 		ID:           insertUser.ID.String(),
 		Name:         insertUser.Name,
 		Email:        insertUser.Email,
-		RestaurentID: insertUser.RestaurantID.String(),
+		RestaurantID: insertUser.RestaurantID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(72 * time.Hour)),
 			Issuer:    "geeye-app",

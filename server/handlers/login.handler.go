@@ -42,21 +42,19 @@ func (h *Handler) Login(c fiber.Ctx) error {
 		ID:           res.ID.String(),
 		Name:         res.Name,
 		Email:        res.Email,
-		RestaurentID: res.RestaurantID.String(),
+		RestaurantID: res.RestaurantID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(72 * time.Hour)),
 			Issuer:    "geeye-app",
 		},
 	}
-
-	// 4. Generate JWT using the REAL ID from the database
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tkn, err := token.SignedString(h.JwtSecret)
+	tkn, err := token.SignedString(utils.JWTSecret)
 
-	fmt.Println(token)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
+		fmt.Println("DEBUG ERROR", err)
+		return c.Status(500).JSON(fiber.Map{"error": "Internal server error"})
 	}
 
 	// 4. Set the Cookie

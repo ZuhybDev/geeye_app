@@ -22,7 +22,7 @@ func SetupRoutes(app *fiber.App) {
 	}
 
 	api := app.Group("/api")
-	api.Get("/users", handler.GetListUsers)
+	api.Get("/users", utils.AuthMiddleware, handler.GetListUsers)
 	api.Post("/user", handler.NewUser)
 	//user login
 	api.Post("/user/login", handler.Login)

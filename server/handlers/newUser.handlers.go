@@ -97,25 +97,40 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Could not create user"})
 	}
 
+	claims := utils.UserPayload{
+		ID:           insertUser.ID.String(),
+		Name:         insertUser.Name,
+		Email:        insertUser.Email,
+		RestaurentID: insertUser.RestaurantID.String(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(72 * time.Hour)),
+			Issuer:    "geeye-app",
+		},
+	}
+
 	// 4. Generate JWT using the REAL ID from the database
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    insertUser.ID, // Use the ID returned by RETURNING *
-		"name":  insertUser.Name,
-		"email": insertUser.Email,
-		"exp":   time.Now().Add(time.Hour * 72).Unix(),
-	})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tkn, err := token.SignedString([]byte(h.JwtSecret))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
 
-	//(Don't send the password back!)
+	// 4. Set the Cookie
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    tkn,
+		Expires:  time.Now().Add(72 * time.Hour),
+		HTTPOnly: true,  // Important: Prevents JS from stealing the token
+		Secure:   false, //TODO Set to true in production with HTTPS
+		SameSite: "Lax",
+	})
+
+	// Don't send the password back!
 	insertUser.Password = ""
 
 	return c.Status(201).JSON(fiber.Map{
 		"message": "User created successfully",
 		"user":    insertUser,
-		"token":   tkn,
 	})
 }

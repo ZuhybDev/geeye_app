@@ -6,6 +6,7 @@ import (
 	connection "github.com/ZuhybDev/geeyeApp/config"
 	"github.com/ZuhybDev/geeyeApp/db"
 	"github.com/ZuhybDev/geeyeApp/handlers"
+	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -21,10 +22,10 @@ func SetupRoutes(app *fiber.App) {
 	}
 
 	api := app.Group("/api")
-
 	api.Get("/users", handler.GetListUsers)
 	api.Post("/user", handler.NewUser)
 	//user login
-	api.Post("/login", handler.Login)
+	api.Post("/user/login", handler.Login)
 	api.Patch("/user/:id", handler.UpdateUser)
+	api.Delete("/user/:id", utils.AuthMiddleware, handler.DeleteUser)
 }

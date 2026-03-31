@@ -20,7 +20,7 @@ INSERT INTO users (
 ) RETURNING *;
 
 -- name: UserLogin :one
-SELECT id, name, email, password FROM users WHERE email = $1;
+SELECT id, name, email, password, restaurant_id FROM users WHERE email = $1;
 
 -- name: UpdateUser :one
 UPDATE users
@@ -37,3 +37,6 @@ SELECT email FROM users WHERE email = $1;
 
 -- name: GetUserById :one
 SELECT id FROM users WHERE id = $1;
+
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = $1 ;

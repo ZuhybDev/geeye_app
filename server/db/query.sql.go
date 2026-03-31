@@ -21,6 +21,15 @@ func (q *Queries) CheckEmail(ctx context.Context, email string) (string, error) 
 	return email, err
 }
 
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUser, id)
+	return err
+}
+
 const getUserById = `-- name: GetUserById :one
 SELECT id FROM users WHERE id = $1
 `
@@ -167,14 +176,15 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateU
 }
 
 const userLogin = `-- name: UserLogin :one
-SELECT id, name, email, password FROM users WHERE email = $1
+SELECT id, name, email, password, restaurant_id FROM users WHERE email = $1
 `
 
 type UserLoginRow struct {
-	ID       pgtype.UUID `json:"id"`
-	Name     string      `json:"name"`
-	Email    string      `json:"email"`
-	Password string      `json:"password"`
+	ID           pgtype.UUID `json:"id"`
+	Name         string      `json:"name"`
+	Email        string      `json:"email"`
+	Password     string      `json:"password"`
+	RestaurantID pgtype.UUID `json:"restaurant_id"`
 }
 
 func (q *Queries) UserLogin(ctx context.Context, email string) (UserLoginRow, error) {
@@ -185,6 +195,7 @@ func (q *Queries) UserLogin(ctx context.Context, email string) (UserLoginRow, er
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.RestaurantID,
 	)
 	return i, err
 }

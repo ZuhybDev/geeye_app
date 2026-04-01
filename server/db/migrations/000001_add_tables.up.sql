@@ -42,6 +42,16 @@ CREATE TABLE restaurants (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE user_addresses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    city VARCHAR(100),
+    state VARCHAR(100),
+    zip_code VARCHAR(20),
+    is_default BOOLEAN DEFAULT false,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+);
 -- 1. Core Entities
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -55,16 +65,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE user_addresses (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    city VARCHAR(100),
-    state VARCHAR(100),
-    zip_code VARCHAR(20),
-    is_default BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 CREATE TABLE res_addresses (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -74,7 +74,7 @@ CREATE TABLE res_addresses (
     state VARCHAR(100),
     phone VARCHAR(20),
     email VARCHAR(255),
-    is_default BOOLEAN DEFAULT false,
+    is_default BOOLEAN DEFAULT false,  -- is is the main branch or not
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

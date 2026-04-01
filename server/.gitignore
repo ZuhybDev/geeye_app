@@ -1,2 +1,13 @@
+
 .env
-tmp/
+.env.local
+.env.*
+!.env.example
+
+main
+server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib

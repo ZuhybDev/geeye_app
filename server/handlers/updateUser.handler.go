@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/ZuhybDev/geeyeApp/db"
+	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -60,7 +61,14 @@ func (h *Handler) UpdateUser(c fiber.Ctx) error {
 		params.Email = pgtype.Text{String: *UpdateParams.Email, Valid: true}
 	}
 	if UpdateParams.Password != nil {
-		params.Password = pgtype.Text{String: *UpdateParams.Password, Valid: true} // hash the password
+
+		bytePass := []byte(*UpdateParams.Password)
+		hashedPass, err := utils.HashedPassword(bytePass)
+
+		if err != nil {
+			return err
+		}
+		params.Password = pgtype.Text{String: hashedPass, Valid: true}
 	}
 	if UpdateParams.PhoneNumber != nil {
 		params.PhoneNumber = pgtype.Text{String: *UpdateParams.PhoneNumber, Valid: true}

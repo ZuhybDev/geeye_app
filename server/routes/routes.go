@@ -32,7 +32,7 @@ func SetupRoutes(app *fiber.App) {
 	api.Delete("/user/:id", middleware.AuthMiddleware, handler.DeleteUser)
 
 	//product
-	// api.Post("/product", middleware.AuthMiddleware, handler.NewProduct)
+	api.Post("/restaurant", middleware.AuthMiddleware, handler.NewRestaurent)
 	// api.Patch("/product/:id", middleware.AuthMiddleware, handler.UpdateProduct)
 	// api.Delete("/product/:id", middleware.AuthMiddleware, handler.DeleteProduct)
 }

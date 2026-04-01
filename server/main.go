@@ -6,6 +6,7 @@ import (
 
 	connection "github.com/ZuhybDev/geeyeApp/config"
 	"github.com/ZuhybDev/geeyeApp/routes"
+	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/joho/godotenv"
 )
@@ -17,6 +18,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to load ENV environments")
 	}
+
+	utils.LoadConfig()
 
 	// Connect once!
 	connection.Connect()

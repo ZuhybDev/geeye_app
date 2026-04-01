@@ -36,7 +36,10 @@ WHERE id = sqlc.arg(id) RETURNING name, email, phone_number, image_url, restaura
 SELECT email FROM users WHERE email = $1;
 
 -- name: GetUserById :one
-SELECT id FROM users WHERE id = $1;
+SELECT * FROM users WHERE id = $1;
 
 -- name: DeleteUser :exec
-DELETE FROM users WHERE id = $1 ;
+DELETE FROM users WHERE id = $1;
+
+-- name: NewResTaurant :one
+INSERT INTO restaurants ( name ) VALUES ( sqlc.arg('name')) RETURNING *;

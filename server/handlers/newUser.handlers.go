@@ -89,6 +89,10 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 	//RestaurantID is a UUID
 	_ = params.RestaurantID.Scan(req.RestaurantID)
 
+	if len(params.Password) >= 8 {
+		return c.Status(400).JSON(fiber.Map{"error": "Password must creater then or equal 8."})
+	}
+
 	// 3. Save to Database
 	insertUser, err := h.Query.NewUser(c.Context(), params)
 	if err != nil {
@@ -101,7 +105,7 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 		ID:           insertUser.ID.String(),
 		Name:         insertUser.Name,
 		Email:        insertUser.Email,
-		RestaurentID: insertUser.RestaurantID.String(),
+		RestaurantID: insertUser.RestaurantID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(72 * time.Hour)),
 			Issuer:    "geeye-app",

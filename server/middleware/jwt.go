@@ -1,34 +1,34 @@
 package middleware
 
 import (
-	"os"
-
-	jwtware "github.com/gofiber/contrib/v3/jwt"
+	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-func Protected() func(c fiber.Ctx) error {
-	secret := os.Getenv("JWT_SECRET")
-	return jwtware.New(jwtware.Config{
-		SigningKey:   jwtware.SigningKey{Key: []byte(secret)},
-		ErrorHandler: jwtError,
-	})
-}
+func AuthMiddleware(c fiber.Ctx) error {
 
-func jwtError(c fiber.Ctx, err error) error {
-	if err.Error() == "Missing or malformed JWT" {
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
-			"status":  "error",
-			"message": "Missing or malformed JWT",
-			"data":    nil,
-		})
-	} else {
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
-			"status":  "error",
-			"message": "Invalid or expired JWT",
-			"data":    nil,
-		})
+	// 1. Get cookie
+	tkn := c.Cookies("token")
+	if tkn == "" {
+		return c.Status(401).SendString("Unauthorized")
 	}
+
+	// 2. Parse and validate
+	token, err := jwt.ParseWithClaims(tkn, &utils.UserPayload{}, func(t *jwt.Token) (any, error) {
+		return utils.JWTSecret, nil
+	})
+
+	if err != nil || !token.Valid {
+		return c.Status(401).SendString("Unauthorized")
+	}
+
+	// 3. Store user data in Fiber Locals for use in other handlers
+	claims, ok := token.Claims.(*utils.UserPayload)
+	if !ok {
+		return c.Status(401).SendString("Invalid token claims")
+	}
+	c.Locals("user", claims)
+
+	return c.Next()
 }

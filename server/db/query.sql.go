@@ -31,13 +31,24 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id FROM users WHERE id = $1
+SELECT id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at FROM users WHERE id = $1
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUserById, id)
-	err := row.Scan(&id)
-	return id, err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.PhoneNumber,
+		&i.ImageUrl,
+		&i.RestaurantID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getUserList = `-- name: GetUserList :many
@@ -72,6 +83,22 @@ func (q *Queries) GetUserList(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const newResTaurant = `-- name: NewResTaurant :one
+INSERT INTO restaurants ( name ) VALUES ( $1) RETURNING id, name, created_at, updated_at
+`
+
+func (q *Queries) NewResTaurant(ctx context.Context, name string) (Restaurant, error) {
+	row := q.db.QueryRow(ctx, newResTaurant, name)
+	var i Restaurant
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const newUser = `-- name: NewUser :one

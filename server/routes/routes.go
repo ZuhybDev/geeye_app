@@ -6,7 +6,7 @@ import (
 	connection "github.com/ZuhybDev/geeyeApp/config"
 	"github.com/ZuhybDev/geeyeApp/db"
 	"github.com/ZuhybDev/geeyeApp/handlers"
-	"github.com/ZuhybDev/geeyeApp/utils"
+	"github.com/ZuhybDev/geeyeApp/middleware"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -21,11 +21,18 @@ func SetupRoutes(app *fiber.App) {
 		JwtSecret: secret,
 	}
 
+	//Api group
 	api := app.Group("/api")
-	api.Get("/users", utils.AuthMiddleware, handler.GetListUsers)
+
+	//user
+	api.Get("/users", middleware.AuthMiddleware, handler.GetListUsers)
 	api.Post("/user", handler.NewUser)
-	//user login
 	api.Post("/user/login", handler.Login)
-	api.Patch("/user/:id", handler.UpdateUser)
-	api.Delete("/user/:id", utils.AuthMiddleware, handler.DeleteUser)
+	api.Patch("/user/:id", middleware.AuthMiddleware, handler.UpdateUser)
+	api.Delete("/user/:id", middleware.AuthMiddleware, handler.DeleteUser)
+
+	//product
+	// api.Post("/product", middleware.AuthMiddleware, handler.NewProduct)
+	// api.Patch("/product/:id", middleware.AuthMiddleware, handler.UpdateProduct)
+	// api.Delete("/product/:id", middleware.AuthMiddleware, handler.DeleteProduct)
 }

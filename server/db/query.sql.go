@@ -21,6 +21,25 @@ func (q *Queries) CheckEmail(ctx context.Context, email string) (string, error) 
 	return email, err
 }
 
+const checkRestaurantID = `-- name: CheckRestaurantID :one
+SELECT id FROM restaurants WHERE id = $1
+`
+
+func (q *Queries) CheckRestaurantID(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, checkRestaurantID, id)
+	err := row.Scan(&id)
+	return id, err
+}
+
+const deleteRestaurant = `-- name: DeleteRestaurant :exec
+DELETE FROM restaurants WHERE id = $1
+`
+
+func (q *Queries) DeleteRestaurant(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteRestaurant, id)
+	return err
+}
+
 const deleteUser = `-- name: DeleteUser :exec
 DELETE FROM users WHERE id = $1
 `

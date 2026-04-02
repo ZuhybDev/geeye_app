@@ -125,6 +125,6 @@ type UserAddress struct {
 	State     pgtype.Text      `json:"state"`
 	ZipCode   pgtype.Text      `json:"zip_code"`
 	IsDefault pgtype.Bool      `json:"is_default"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
 }

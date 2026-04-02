@@ -49,3 +49,10 @@ DELETE FROM restaurants WHERE id = $1;
 
 -- name: CheckRestaurantID :one
 SELECT id FROM restaurants WHERE id = $1;
+
+-- name: UpdateRestaurant :one
+UPDATE restaurants  SET name = coalesce(sqlc.narg(name), name) 
+ WHERE id = sqlc.arg(id) RETURNING name;
+
+-- name: GetUserResById :one
+SELECT restaurant_id FROM users WHERE id = $1;

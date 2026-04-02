@@ -14,7 +14,7 @@ import (
 )
 
 // function get all users
-func (h *Handler) GetListUsers(c fiber.Ctx) error {
+func (h *QueryEnv) GetListUsers(c fiber.Ctx) error {
 	ctx := c.Context()
 
 	users, err := h.Query.GetUserList(ctx)
@@ -37,7 +37,7 @@ type RegisterRequest struct {
 	RestaurantID *string `json:"restaurant_id"`
 }
 
-func (h *Handler) NewUser(c fiber.Ctx) error {
+func (h *QueryEnv) NewUser(c fiber.Ctx) error {
 
 	var req RegisterRequest
 

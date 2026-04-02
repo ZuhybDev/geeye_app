@@ -12,7 +12,7 @@ type RestParam struct {
 	Name string `json:"name"`
 }
 
-func (h *Handler) NewRestaurent(c fiber.Ctx) error {
+func (h QueryEnv) NewRestaurent(c fiber.Ctx) error {
 
 	// jwt user data
 	user := c.Locals("user").(*middleware.UserPayload)
@@ -65,7 +65,7 @@ func (h *Handler) NewRestaurent(c fiber.Ctx) error {
 		},
 	}
 
-	u, err := h.Query.UpdateUser(c.Context(), params)
+	_, err = h.Query.UpdateUser(c.Context(), params)
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -74,8 +74,7 @@ func (h *Handler) NewRestaurent(c fiber.Ctx) error {
 	}
 
 	return c.Status(201).JSON(fiber.Map{
-		"message":     "Restaurant successfully created",
-		"restaurant":  res,
-		"updatedUser": u,
+		"message":    "Restaurant successfully created",
+		"restaurant": res,
 	})
 }

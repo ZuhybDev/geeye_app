@@ -4,30 +4,35 @@ import (
 	"fmt"
 
 	"github.com/ZuhybDev/geeyeApp/middleware"
+	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
 
 	localUser := c.Locals("user").(*middleware.UserPayload)
 
-	resId, err := uuid.Parse(localUser.RestaurantID)
-
-	dbResId := pgtype.UUID{
-		Bytes: resId,
-		Valid: true,
-	}
+	userResId, err := utils.ParsePGIDs(localUser.ID)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR: ", err)
 		return c.Status(500).JSON(fiber.Map{
 			"message": "Internal server error",
 		})
+
 	}
 
-	id, err := h.Query.CheckRestaurantID(c.Context(), dbResId)
+	id, err := h.Query.GetUserResById(c.Context(), userResId)
+
+	if err != nil {
+		fmt.Println("DEGUB ERROR: ", err)
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Restaurant not found",
+		})
+
+	}
+
+	hasExistId, err := h.Query.CheckRestaurantID(c.Context(), id)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR delete restaurant: ", err)
@@ -36,7 +41,7 @@ func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
 		})
 	}
 
-	err = h.Query.DeleteRestaurant(c.Context(), id)
+	err = h.Query.DeleteRestaurant(c.Context(), hasExistId)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR delete restaurant: ")

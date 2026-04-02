@@ -20,7 +20,7 @@ type UpdateUserParams struct {
 	RestaurantID *string `json:"restaurant_id"`
 }
 
-func (h *Handler) UpdateUser(c fiber.Ctx) error {
+func (h *QueryEnv) UpdateUser(c fiber.Ctx) error {
 
 	id := c.Params("id")
 	fmt.Println("id:", id)
@@ -84,7 +84,7 @@ func (h *Handler) UpdateUser(c fiber.Ctx) error {
 		params.RestaurantID = pgtype.UUID{Bytes: parsedID, Valid: true}
 	}
 
-	u, err := h.Query.UpdateUser(c.Context(), params)
+	_, err = h.Query.UpdateUser(c.Context(), params)
 
 	if err != nil {
 		log.Println("Error Updating user:", err)
@@ -93,6 +93,5 @@ func (h *Handler) UpdateUser(c fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User updated successfully",
-		"user":    u,
 	})
 }

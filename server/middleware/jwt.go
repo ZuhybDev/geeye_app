@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
@@ -38,9 +36,8 @@ func AuthMiddleware(c fiber.Ctx) error {
 	if !ok {
 		return c.Status(401).SendString("Invalid token claims")
 	}
-	c.Locals("user", claims)
 
-	fmt.Printf("user claims in middleware: %v\n", claims)
+	c.Locals("user", claims)
 
 	return c.Next()
 }

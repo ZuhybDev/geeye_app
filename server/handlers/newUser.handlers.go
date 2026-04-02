@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/ZuhybDev/geeyeApp/db"
+	"github.com/ZuhybDev/geeyeApp/middleware"
 	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
@@ -48,7 +49,7 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 	_, err := h.Query.CheckEmail(c.Context(), req.Email)
 
 	if err == nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Email already taken."})
+		return c.Status(400).JSON(fiber.Map{"error": "Email already taken"})
 	}
 
 	// 1. Hash the password (using bcrypt)
@@ -89,19 +90,18 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 	//RestaurantID is a UUID
 	_ = params.RestaurantID.Scan(req.RestaurantID)
 
-	if len(params.Password) >= 8 {
-		return c.Status(400).JSON(fiber.Map{"error": "Password must creater then or equal 8."})
+	if len(params.Password) < 6 {
+		return c.Status(400).JSON(fiber.Map{"message": "Password must greater then 6 charectors"})
 	}
 
 	// 3. Save to Database
 	insertUser, err := h.Query.NewUser(c.Context(), params)
 	if err != nil {
-		// NEVER use log.Fatal in a handler! It kills the server process.
-		log.Printf("DB Error: %v", err)
-		return c.Status(500).JSON(fiber.Map{"error": "Could not create user"})
+		log.Printf("DB error: %v", err)
+		return c.Status(500).JSON(fiber.Map{"message": "Could not create user"})
 	}
 
-	claims := utils.UserPayload{
+	claims := middleware.UserPayload{
 		ID:           insertUser.ID.String(),
 		Name:         insertUser.Name,
 		Email:        insertUser.Email,

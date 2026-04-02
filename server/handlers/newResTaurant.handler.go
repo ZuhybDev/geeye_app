@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/ZuhybDev/geeyeApp/db"
-	"github.com/ZuhybDev/geeyeApp/utils"
+	"github.com/ZuhybDev/geeyeApp/middleware"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -15,7 +15,7 @@ type RestParam struct {
 func (h *Handler) NewRestaurent(c fiber.Ctx) error {
 
 	// jwt user data
-	user := c.Locals("user").(*utils.UserPayload)
+	user := c.Locals("user").(*middleware.UserPayload)
 
 	var restParam RestParam
 
@@ -39,8 +39,7 @@ func (h *Handler) NewRestaurent(c fiber.Ctx) error {
 		})
 	}
 
-	var UserParam UpdateUserParams
-
+	// Parse user id from the cookies
 	parseUserId, err := uuid.Parse(user.ID)
 
 	if err != nil {
@@ -49,22 +48,21 @@ func (h *Handler) NewRestaurent(c fiber.Ctx) error {
 		})
 	}
 
-	dbId := pgtype.UUID{
+	userdbId := pgtype.UUID{
 		Bytes: parseUserId,
 		Valid: true,
 	}
 
+	// parse the restuarant ID
+	resId := uuid.UUID(res.ID.Bytes)
+
+	// Pass the user id and restaurant ID
 	params := db.UpdateUserParams{
-		ID: dbId,
-	}
-
-	parseId := uuid.UUID(res.ID.Bytes)
-
-	if UserParam.RestaurantID != nil {
-		params.RestaurantID = pgtype.UUID{
-			Bytes: parseId,
+		ID: userdbId,
+		RestaurantID: pgtype.UUID{
+			Bytes: resId,
 			Valid: true,
-		}
+		},
 	}
 
 	u, err := h.Query.UpdateUser(c.Context(), params)
@@ -75,7 +73,7 @@ func (h *Handler) NewRestaurent(c fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(200).JSON(fiber.Map{
+	return c.Status(201).JSON(fiber.Map{
 		"message":     "Restaurant successfully created",
 		"restaurant":  res,
 		"updatedUser": u,

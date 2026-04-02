@@ -49,10 +49,10 @@ CREATE TABLE user_addresses (
     state VARCHAR(100),
     zip_code VARCHAR(20),
     is_default BOOLEAN DEFAULT false,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- 1. Core Entities
+-- 1. user Entities
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,

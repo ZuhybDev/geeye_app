@@ -43,3 +43,9 @@ DELETE FROM users WHERE id = $1;
 
 -- name: NewResTaurant :one
 INSERT INTO restaurants ( name ) VALUES ( sqlc.arg('name')) RETURNING *;
+
+-- name: DeleteRestaurant :exec
+DELETE FROM restaurants WHERE id = $1;
+
+-- name: CheckRestaurantID :one
+SELECT id FROM restaurants WHERE id = $1;

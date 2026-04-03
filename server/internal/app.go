@@ -1,9 +1,8 @@
-package handlers
+package internal
 
 import "github.com/ZuhybDev/geeyeApp/db"
 
-// helper
-type QueryEnv struct {
+type App struct {
 	Query     *db.Queries
 	JwtSecret string
 }

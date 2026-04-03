@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/ZuhybDev/geeyeApp/utils"
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -24,7 +24,7 @@ func AuthMiddleware(c fiber.Ctx) error {
 
 	// 2. Parse and validate
 	token, err := jwt.ParseWithClaims(tkn, &UserPayload{}, func(t *jwt.Token) (any, error) {
-		return utils.JWTSecret, nil
+		return env.ENV.JWTSecret, nil
 	})
 
 	if err != nil || !token.Valid {

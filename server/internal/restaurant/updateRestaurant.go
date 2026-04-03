@@ -1,4 +1,4 @@
-package handlers
+package restaurant
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type resParams struct {
 	Name *string `json:"name"`
 }
 
-func (h *QueryEnv) UpdateRestaurant(c fiber.Ctx) error {
+func (h *Handler) UpdateRestaurant(c fiber.Ctx) error {
 
 	var params resParams
 
@@ -36,7 +36,7 @@ func (h *QueryEnv) UpdateRestaurant(c fiber.Ctx) error {
 		})
 	}
 
-	resId, err := h.Query.GetUserResById(c.Context(), parsedId)
+	resId, err := h.app.Query.GetUserResById(c.Context(), parsedId)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR UDPATE RESTAURANT GET ID FROM DB: ", err)
@@ -45,7 +45,7 @@ func (h *QueryEnv) UpdateRestaurant(c fiber.Ctx) error {
 		})
 	}
 
-	id, err := h.Query.CheckRestaurantID(c.Context(), resId)
+	id, err := h.app.Query.CheckRestaurantID(c.Context(), resId)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR UPDATE RESTAURANT: ", err)
@@ -62,7 +62,7 @@ func (h *QueryEnv) UpdateRestaurant(c fiber.Ctx) error {
 		dbParams.Name = pgtype.Text{String: *params.Name, Valid: true}
 	}
 
-	res, err := h.Query.UpdateRestaurant(c.Context(), dbParams)
+	res, err := h.app.Query.UpdateRestaurant(c.Context(), dbParams)
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "Restaurant updated successfully",

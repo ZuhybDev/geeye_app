@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"os"
-
 	connection "github.com/ZuhybDev/geeyeApp/config"
 	"github.com/ZuhybDev/geeyeApp/db"
-	"github.com/ZuhybDev/geeyeApp/handlers"
-	"github.com/ZuhybDev/geeyeApp/middleware"
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
+	"github.com/ZuhybDev/geeyeApp/internal"
+	"github.com/ZuhybDev/geeyeApp/internal/restaurant"
+	"github.com/ZuhybDev/geeyeApp/internal/users"
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -14,25 +14,22 @@ func SetupRoutes(app *fiber.App) {
 
 	queries := db.New(connection.DBPool)
 
-	secret := os.Getenv("JWT_SECRET")
+	secret := env.ENV.JWTSecret
 
-	handler := &handlers.Handler{
+	appHandler := internal.App{
 		Query:     queries,
 		JwtSecret: secret,
 	}
 
-	//Api group
+	// Api group
 	api := app.Group("/api")
 
-	//user
-	api.Get("/users", middleware.AuthMiddleware, handler.GetListUsers)
-	api.Post("/user", handler.NewUser)
-	api.Post("/user/login", handler.Login)
-	api.Patch("/user/:id", middleware.AuthMiddleware, handler.UpdateUser)
-	api.Delete("/user/", middleware.AuthMiddleware, handler.DeleteUser)
+	// handler
+	resHandler := restaurant.NewRestaurantHandler(&appHandler)
+	userHandler := users.NewUserHandler(&appHandler)
 
-	//product
-	api.Post("/restaurant", middleware.AuthMiddleware, handler.NewRestaurent)
-	api.Delete("/restaurant/delete", middleware.AuthMiddleware, handler.DeleteRestaurant)
-	api.Patch("/restaurant", middleware.AuthMiddleware, handler.UpdateRestaurant)
+	// pass the app and handler to route registers
+	restaurant.RegisterRoutes(api, resHandler)
+	users.RegisterUserRoutes(api, userHandler)
+
 }

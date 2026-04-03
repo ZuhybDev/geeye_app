@@ -1,4 +1,4 @@
-package handlers
+package users
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ type UpdateUserParams struct {
 	RestaurantID *string `json:"restaurant_id"`
 }
 
-func (h *QueryEnv) UpdateUser(c fiber.Ctx) error {
+func (h *Handler) UpdateUser(c fiber.Ctx) error {
 
 	id := c.Params("id")
 	fmt.Println("id:", id)
@@ -36,7 +36,7 @@ func (h *QueryEnv) UpdateUser(c fiber.Ctx) error {
 		Bytes: parsedId,
 		Valid: true,
 	}
-	_, err = h.Query.GetUserById(c.Context(), dbId) // check only if its exist
+	_, err = h.app.Query.GetUserById(c.Context(), dbId) // check only if its exist
 
 	if err != nil {
 		log.Println("Error fetching user function:", err)
@@ -84,7 +84,7 @@ func (h *QueryEnv) UpdateUser(c fiber.Ctx) error {
 		params.RestaurantID = pgtype.UUID{Bytes: parsedID, Valid: true}
 	}
 
-	_, err = h.Query.UpdateUser(c.Context(), params)
+	_, err = h.app.Query.UpdateUser(c.Context(), params)
 
 	if err != nil {
 		log.Println("Error Updating user:", err)

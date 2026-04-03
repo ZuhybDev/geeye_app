@@ -1,4 +1,4 @@
-package handlers
+package users
 
 import (
 	"log"
@@ -14,10 +14,10 @@ import (
 )
 
 // function get all users
-func (h *QueryEnv) GetListUsers(c fiber.Ctx) error {
+func (h *Handler) GetListUsers(c fiber.Ctx) error {
 	ctx := c.Context()
 
-	users, err := h.Query.GetUserList(ctx)
+	users, err := h.app.Query.GetUserList(ctx)
 	if err != nil {
 		log.Println("Error fetching users:", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Internal server error"})
@@ -37,7 +37,7 @@ type RegisterRequest struct {
 	RestaurantID *string `json:"restaurant_id"`
 }
 
-func (h *QueryEnv) NewUser(c fiber.Ctx) error {
+func (h *Handler) NewUser(c fiber.Ctx) error {
 
 	var req RegisterRequest
 
@@ -46,7 +46,7 @@ func (h *QueryEnv) NewUser(c fiber.Ctx) error {
 	}
 
 	//check email
-	_, err := h.Query.CheckEmail(c.Context(), req.Email)
+	_, err := h.app.Query.CheckEmail(c.Context(), req.Email)
 
 	if err == nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Email already taken"})
@@ -95,7 +95,7 @@ func (h *QueryEnv) NewUser(c fiber.Ctx) error {
 	}
 
 	// 3. Save to Database
-	insertUser, err := h.Query.NewUser(c.Context(), params)
+	insertUser, err := h.app.Query.NewUser(c.Context(), params)
 	if err != nil {
 		log.Printf("DB error: %v", err)
 		return c.Status(500).JSON(fiber.Map{"message": "Could not create user"})
@@ -115,7 +115,7 @@ func (h *QueryEnv) NewUser(c fiber.Ctx) error {
 	// 4. Generate JWT using the REAL ID from the database
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tkn, err := token.SignedString([]byte(h.JwtSecret))
+	tkn, err := token.SignedString([]byte(h.app.JwtSecret))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
 	}

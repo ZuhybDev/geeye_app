@@ -1,4 +1,4 @@
-package handlers
+package users
 
 import (
 	"github.com/ZuhybDev/geeyeApp/middleware"
@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (h *QueryEnv) DeleteUser(c fiber.Ctx) error {
+func (h *Handler) DeleteUser(c fiber.Ctx) error {
 
 	localUser := c.Locals("user").(middleware.UserPayload)
 
@@ -18,7 +18,7 @@ func (h *QueryEnv) DeleteUser(c fiber.Ctx) error {
 		Valid: true,
 	}
 
-	_, err = h.Query.GetUserById(c.Context(), dbId)
+	_, err = h.app.Query.GetUserById(c.Context(), dbId)
 
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{
@@ -28,7 +28,7 @@ func (h *QueryEnv) DeleteUser(c fiber.Ctx) error {
 
 	// delete function
 
-	err = h.Query.DeleteUser(c.Context(), dbId)
+	err = h.app.Query.DeleteUser(c.Context(), dbId)
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User successfully deleted",

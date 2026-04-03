@@ -1,4 +1,4 @@
-package handlers
+package restaurant
 
 import (
 	"github.com/ZuhybDev/geeyeApp/db"
@@ -12,7 +12,7 @@ type RestParam struct {
 	Name string `json:"name"`
 }
 
-func (h QueryEnv) NewRestaurent(c fiber.Ctx) error {
+func (h *Handler) NewRestaurent(c fiber.Ctx) error {
 
 	// jwt user data
 	user := c.Locals("user").(*middleware.UserPayload)
@@ -31,7 +31,7 @@ func (h QueryEnv) NewRestaurent(c fiber.Ctx) error {
 		})
 	}
 
-	res, err := h.Query.NewResTaurant(c.Context(), restParam.Name)
+	res, err := h.app.Query.NewResTaurant(c.Context(), restParam.Name)
 
 	if err != nil {
 		c.Status(500).JSON(fiber.Map{
@@ -65,7 +65,7 @@ func (h QueryEnv) NewRestaurent(c fiber.Ctx) error {
 		},
 	}
 
-	_, err = h.Query.UpdateUser(c.Context(), params)
+	_, err = h.app.Query.UpdateUser(c.Context(), params)
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{

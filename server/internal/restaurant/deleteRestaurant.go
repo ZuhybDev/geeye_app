@@ -1,4 +1,4 @@
-package handlers
+package restaurant
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
 
 	}
 
-	id, err := h.Query.GetUserResById(c.Context(), userResId)
+	id, err := h.app.Query.GetUserResById(c.Context(), userResId)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR: ", err)
@@ -32,7 +32,7 @@ func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
 
 	}
 
-	hasExistId, err := h.Query.CheckRestaurantID(c.Context(), id)
+	hasExistId, err := h.app.Query.CheckRestaurantID(c.Context(), id)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR delete restaurant: ", err)
@@ -41,7 +41,7 @@ func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
 		})
 	}
 
-	err = h.Query.DeleteRestaurant(c.Context(), hasExistId)
+	err = h.app.Query.DeleteRestaurant(c.Context(), hasExistId)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR delete restaurant: ")

@@ -1,9 +1,10 @@
-package handlers
+package users
 
 import (
 	"fmt"
 	"time"
 
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
 	"github.com/ZuhybDev/geeyeApp/middleware"
 	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
@@ -15,7 +16,7 @@ type LoginUser struct {
 	Email    string `json:"email"`
 }
 
-func (h *QueryEnv) Login(c fiber.Ctx) error {
+func (h *Handler) Login(c fiber.Ctx) error {
 
 	var lgnUser LoginUser
 
@@ -27,7 +28,7 @@ func (h *QueryEnv) Login(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"message": "Email and password required"})
 	}
 
-	res, err := h.Query.UserLogin(c.Context(), lgnUser.Email)
+	res, err := h.app.Query.UserLogin(c.Context(), lgnUser.Email)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid credentials"})
@@ -51,10 +52,10 @@ func (h *QueryEnv) Login(c fiber.Ctx) error {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tkn, err := token.SignedString(utils.JWTSecret)
+	tkn, err := token.SignedString([]byte(env.ENV.JWTSecret))
 
 	if err != nil {
-		fmt.Println("DEBUG ERROR", err)
+		fmt.Println("DEBUG ERROR JWT Asigning", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Internal server error"})
 	}
 

@@ -3,8 +3,8 @@ package connection
 import (
 	"context"
 	"log"
-	"os"
 
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
 	"github.com/jackc/pgx/v5/pgxpool" // Use pgx v5
 	"github.com/joho/godotenv"
 )
@@ -15,8 +15,7 @@ var DBPool *pgxpool.Pool
 func Connect() {
 	//load the Env
 	godotenv.Load()
-	dbURL := os.Getenv("DATABASE_URL")
-
+	dbURL := env.ENV.DBUrl
 	var err error
 	// pgxpool handles the connection and the "Ping" automatically
 	DBPool, err = pgxpool.New(context.Background(), dbURL)

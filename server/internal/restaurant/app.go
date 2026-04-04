@@ -2,10 +2,10 @@ package restaurant
 
 import app "github.com/ZuhybDev/geeyeApp/internal"
 
-type Handler struct {
+type ResHandler struct {
 	app *app.App
 }
 
-func NewRestaurantHandler(a *app.App) *Handler {
-	return &Handler{app: a}
+func NewRestaurantHandler(a *app.App) *ResHandler {
+	return &ResHandler{app: a}
 }

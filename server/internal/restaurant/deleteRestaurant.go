@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
+func (h *ResHandler) DeleteRestaurant(c fiber.Ctx) error {
 
 	localUser := c.Locals("user").(*middleware.UserPayload)
 

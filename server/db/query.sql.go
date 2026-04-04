@@ -31,6 +31,61 @@ func (q *Queries) CheckRestaurantID(ctx context.Context, id pgtype.UUID) (pgtype
 	return id, err
 }
 
+const createResAddress = `-- name: CreateResAddress :one
+INSERT INTO res_addresses (
+  restaurant_id,
+  street_name,
+  city,
+  state,
+  phone,
+  email,
+  is_default
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7
+) RETURNING id, restaurant_id, street_name, city, state, phone, email, is_default, created_at
+`
+
+type CreateResAddressParams struct {
+	RestaurantID pgtype.UUID `json:"restaurant_id"`
+	StreetName   pgtype.Text `json:"street_name"`
+	City         pgtype.Text `json:"city"`
+	State        pgtype.Text `json:"state"`
+	Phone        pgtype.Text `json:"phone"`
+	Email        pgtype.Text `json:"email"`
+	IsDefault    pgtype.Bool `json:"is_default"`
+}
+
+func (q *Queries) CreateResAddress(ctx context.Context, arg CreateResAddressParams) (ResAddress, error) {
+	row := q.db.QueryRow(ctx, createResAddress,
+		arg.RestaurantID,
+		arg.StreetName,
+		arg.City,
+		arg.State,
+		arg.Phone,
+		arg.Email,
+		arg.IsDefault,
+	)
+	var i ResAddress
+	err := row.Scan(
+		&i.ID,
+		&i.RestaurantID,
+		&i.StreetName,
+		&i.City,
+		&i.State,
+		&i.Phone,
+		&i.Email,
+		&i.IsDefault,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deleteRestaurant = `-- name: DeleteRestaurant :exec
 DELETE FROM restaurants WHERE id = $1
 `

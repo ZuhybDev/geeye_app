@@ -12,7 +12,7 @@ type RestParam struct {
 	Name string `json:"name"`
 }
 
-func (h *Handler) NewRestaurent(c fiber.Ctx) error {
+func (h *ResHandler) NewRestaurent(c fiber.Ctx) error {
 
 	// jwt user data
 	user := c.Locals("user").(*middleware.UserPayload)

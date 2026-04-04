@@ -64,7 +64,7 @@ func (h *Handler) Login(c fiber.Ctx) error {
 		Name:     "token",
 		Value:    tkn,
 		Expires:  time.Now().Add(72 * time.Hour),
-		HTTPOnly: true,  // Important: Prevents JS from stealing the token
+		HTTPOnly: true,
 		Secure:   false, //TODO Set to true in production with HTTPS
 		SameSite: "Lax",
 	})

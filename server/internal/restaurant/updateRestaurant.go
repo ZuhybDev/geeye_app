@@ -14,7 +14,7 @@ type resParams struct {
 	Name *string `json:"name"`
 }
 
-func (h *Handler) UpdateRestaurant(c fiber.Ctx) error {
+func (h *ResHandler) UpdateRestaurant(c fiber.Ctx) error {
 
 	var params resParams
 

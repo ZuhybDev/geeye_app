@@ -12,5 +12,5 @@ func RegisterUserRoutes(api fiber.Router, h *Handler) {
 	api.Post("/user", h.NewUser)
 	api.Post("/user/login", h.Login)
 	api.Patch("/user/:id", middleware.AuthMiddleware, h.UpdateUser)
-	api.Delete("/user/", middleware.AuthMiddleware, h.DeleteUser)
+	api.Delete("/user", middleware.AuthMiddleware, h.DeleteUser)
 }

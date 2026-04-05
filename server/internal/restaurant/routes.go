@@ -9,6 +9,9 @@ func RegisterRoutes(api fiber.Router, h *ResHandler) {
 
 	// //restaurant
 	api.Post("/restaurant", middleware.AuthMiddleware, h.NewRestaurent)
+	api.Patch("/restaurant/update", middleware.AuthMiddleware, h.UpdateRestaurant)
 	api.Delete("/restaurant/delete", middleware.AuthMiddleware, h.DeleteRestaurant)
-	api.Patch("/restaurant", middleware.AuthMiddleware, h.UpdateRestaurant)
+
+	// Res Addresses
+	api.Post("/restaurant/address", middleware.AuthMiddleware, h.CreateResAddress)
 }

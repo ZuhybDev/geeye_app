@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	env "github.com/ZuhybDev/geeyeApp/envConfig"
 	"github.com/ZuhybDev/geeyeApp/middleware"
 	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
@@ -41,10 +40,9 @@ func (h *Handler) Login(c fiber.Ctx) error {
 	}
 
 	claims := middleware.UserPayload{
-		ID:           res.ID.String(),
-		Name:         res.Name,
-		Email:        res.Email,
-		RestaurantID: res.RestaurantID.String(),
+		ID:    res.ID.String(),
+		Name:  res.Name,
+		Email: res.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(72 * time.Hour)),
 			Issuer:    "geeye-app",
@@ -52,7 +50,8 @@ func (h *Handler) Login(c fiber.Ctx) error {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tkn, err := token.SignedString([]byte(env.ENV.JWTSecret))
+	secret := []byte(h.app.JwtSecret)
+	tkn, err := token.SignedString(secret)
 
 	if err != nil {
 		fmt.Println("DEBUG ERROR JWT Asigning", err)

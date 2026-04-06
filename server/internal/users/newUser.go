@@ -102,10 +102,9 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 	}
 
 	claims := middleware.UserPayload{
-		ID:           insertUser.ID.String(),
-		Name:         insertUser.Name,
-		Email:        insertUser.Email,
-		RestaurantID: insertUser.RestaurantID.String(),
+		ID:    insertUser.ID.String(),
+		Name:  insertUser.Name,
+		Email: insertUser.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(72 * time.Hour)),
 			Issuer:    "geeye-app",

@@ -159,6 +159,40 @@ func (q *Queries) GetUserList(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const getUserResAddresses = `-- name: GetUserResAddresses :many
+SELECT id, restaurant_id, street_name, city, state, phone, email, is_default, created_at FROM res_addresses WHERE restaurant_id = $1 ORDER BY created_at
+`
+
+func (q *Queries) GetUserResAddresses(ctx context.Context, restaurantID pgtype.UUID) ([]ResAddress, error) {
+	rows, err := q.db.Query(ctx, getUserResAddresses, restaurantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ResAddress
+	for rows.Next() {
+		var i ResAddress
+		if err := rows.Scan(
+			&i.ID,
+			&i.RestaurantID,
+			&i.StreetName,
+			&i.City,
+			&i.State,
+			&i.Phone,
+			&i.Email,
+			&i.IsDefault,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserResById = `-- name: GetUserResById :one
 SELECT restaurant_id FROM users WHERE id = $1
 `
@@ -235,6 +269,16 @@ func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (User, error) 
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const updateDefaultResBranch = `-- name: UpdateDefaultResBranch :exec
+UPDATE res_addresses SET is_default = false 
+     WHERE restaurant_id = $1 AND is_default = true
+`
+
+func (q *Queries) UpdateDefaultResBranch(ctx context.Context, restaurantID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, updateDefaultResBranch, restaurantID)
+	return err
 }
 
 const updateRestaurant = `-- name: UpdateRestaurant :one

@@ -76,3 +76,9 @@ INSERT INTO res_addresses (
   sqlc.arg('is_default')
 ) RETURNING *;
 
+-- name: UpdateDefaultResBranch :exec
+UPDATE res_addresses SET is_default = false 
+     WHERE restaurant_id = $1 AND is_default = true;
+
+-- name: GetUserResAddresses :many
+SELECT * FROM res_addresses WHERE restaurant_id = $1 ORDER BY created_at;

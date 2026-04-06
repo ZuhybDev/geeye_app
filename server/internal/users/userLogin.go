@@ -50,7 +50,8 @@ func (h *Handler) Login(c fiber.Ctx) error {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tkn, err := token.SignedString([]byte(h.app.JwtSecret))
+	secret := []byte(h.app.JwtSecret)
+	tkn, err := token.SignedString(secret)
 
 	if err != nil {
 		fmt.Println("DEBUG ERROR JWT Asigning", err)

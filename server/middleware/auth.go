@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"os"
 
 	env "github.com/ZuhybDev/geeyeApp/envConfig"
 	"github.com/gofiber/fiber/v3"
@@ -16,24 +15,30 @@ type UserPayload struct {
 	jwt.RegisteredClaims
 }
 
-var secret = os.Getenv("JWTSecret")
-
 func AuthMiddleware(c fiber.Ctx) error {
 
 	// 1. Get cookie
 	tkn := c.Cookies("token")
 	if tkn == "" {
-		return c.Status(404).SendString("Unauthorized token is missing")
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   "Unauthorized",
+			"message": "Token is missing",
+		})
 	}
 
-	fmt.Printf("Token from ENV file: %s\n", env.ENV.JWTSecret)
 	// 2. Parse and validate
 	token, err := jwt.ParseWithClaims(tkn, &UserPayload{}, func(t *jwt.Token) (any, error) {
-		return env.ENV.JWTSecret, nil
-	})
+		// Verify the signing method to prevent algorithm confusion attacks
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		return []byte(env.ENV.JWTSecret), nil
+	},
+	)
 
 	if err != nil || !token.Valid {
-		return c.Status(404).SendString("Unauthorized invalid token")
+		fmt.Printf("jwt Error: %v\n", err)
+		return c.Status(401).SendString("Unauthorized invalid token")
 	}
 
 	// 3. Store user data in Fiber Locals for use in other handlers

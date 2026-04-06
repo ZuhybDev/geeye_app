@@ -14,4 +14,6 @@ func RegisterRoutes(api fiber.Router, h *ResHandler) {
 
 	// Res Addresses
 	api.Post("/restaurant/address", middleware.AuthMiddleware, h.CreateResAddress)
+	// get addresses
+	api.Get("/restaurant/addresses", middleware.AuthMiddleware, h.GetAdderessById)
 }

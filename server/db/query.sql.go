@@ -159,12 +159,12 @@ func (q *Queries) GetUserList(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-const getUserResAddresses = `-- name: GetUserResAddresses :many
+const getUserResAddressesById = `-- name: GetUserResAddressesById :many
 SELECT id, restaurant_id, street_name, city, state, phone, email, is_default, created_at FROM res_addresses WHERE restaurant_id = $1 ORDER BY created_at
 `
 
-func (q *Queries) GetUserResAddresses(ctx context.Context, restaurantID pgtype.UUID) ([]ResAddress, error) {
-	rows, err := q.db.Query(ctx, getUserResAddresses, restaurantID)
+func (q *Queries) GetUserResAddressesById(ctx context.Context, restaurantID pgtype.UUID) ([]ResAddress, error) {
+	rows, err := q.db.Query(ctx, getUserResAddressesById, restaurantID)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (User, error) 
 }
 
 const updateDefaultResBranch = `-- name: UpdateDefaultResBranch :exec
-UPDATE res_addresses SET is_default = false 
+UPDATE res_addresses SET is_default = false
      WHERE restaurant_id = $1 AND is_default = true
 `
 
@@ -281,8 +281,54 @@ func (q *Queries) UpdateDefaultResBranch(ctx context.Context, restaurantID pgtyp
 	return err
 }
 
+const updateResAddress = `-- name: UpdateResAddress :one
+UPDATE res_addresses SET
+   street_name = coalesce($2, street_name),
+   city = COALESCE($3, city),
+   state = COALESCE($4, state),
+   phone = COALESCE($5, phone),
+   email = COALESCE($6, email),
+   is_default = COALESCE($7, is_default)
+WHERE id = $1 RETURNING id, restaurant_id, street_name, city, state, phone, email, is_default, created_at
+`
+
+type UpdateResAddressParams struct {
+	ID         pgtype.UUID `json:"id"`
+	StreetName pgtype.Text `json:"street_name"`
+	City       pgtype.Text `json:"city"`
+	State      pgtype.Text `json:"state"`
+	Phone      pgtype.Text `json:"phone"`
+	Email      pgtype.Text `json:"email"`
+	IsDefault  pgtype.Bool `json:"is_default"`
+}
+
+func (q *Queries) UpdateResAddress(ctx context.Context, arg UpdateResAddressParams) (ResAddress, error) {
+	row := q.db.QueryRow(ctx, updateResAddress,
+		arg.ID,
+		arg.StreetName,
+		arg.City,
+		arg.State,
+		arg.Phone,
+		arg.Email,
+		arg.IsDefault,
+	)
+	var i ResAddress
+	err := row.Scan(
+		&i.ID,
+		&i.RestaurantID,
+		&i.StreetName,
+		&i.City,
+		&i.State,
+		&i.Phone,
+		&i.Email,
+		&i.IsDefault,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateRestaurant = `-- name: UpdateRestaurant :one
-UPDATE restaurants  SET name = coalesce($1, name) 
+UPDATE restaurants  SET name = coalesce($1, name)
  WHERE id = $2 RETURNING name
 `
 

@@ -5,6 +5,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+// It's helper function that parses string ids into pgtype.UUID
 func ParsePGIDs(s string) (pgtype.UUID, error) {
 
 	parsedId, err := uuid.Parse(s)

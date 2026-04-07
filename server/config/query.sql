@@ -51,13 +51,13 @@ DELETE FROM restaurants WHERE id = $1;
 SELECT id FROM restaurants WHERE id = $1;
 
 -- name: UpdateRestaurant :one
-UPDATE restaurants  SET name = coalesce(sqlc.narg(name), name) 
+UPDATE restaurants  SET name = coalesce(sqlc.narg(name), name)
  WHERE id = sqlc.arg(id) RETURNING name;
 
 -- name: GetUserResById :one
 SELECT restaurant_id FROM users WHERE id = $1;
 
--- name: CreateResAddress :one 
+-- name: CreateResAddress :one
 INSERT INTO res_addresses (
   restaurant_id,
   street_name,
@@ -77,8 +77,18 @@ INSERT INTO res_addresses (
 ) RETURNING *;
 
 -- name: UpdateDefaultResBranch :exec
-UPDATE res_addresses SET is_default = false 
+UPDATE res_addresses SET is_default = false
      WHERE restaurant_id = $1 AND is_default = true;
 
--- name: GetUserResAddresses :many
+-- name: GetUserResAddressesById :many
 SELECT * FROM res_addresses WHERE restaurant_id = $1 ORDER BY created_at;
+
+-- name: UpdateResAddress :one
+UPDATE res_addresses SET
+   street_name = coalesce(sqlc.narg(street_name), street_name),
+   city = COALESCE(sqlc.narg(city), city),
+   state = COALESCE(sqlc.narg(state), state),
+   phone = COALESCE(sqlc.narg(phone), phone),
+   email = COALESCE(sqlc.narg(email), email),
+   is_default = COALESCE(sqlc.narg('is_default'), is_default)
+WHERE id = $1 RETURNING * ;

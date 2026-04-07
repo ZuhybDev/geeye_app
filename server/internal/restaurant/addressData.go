@@ -125,7 +125,7 @@ func (h *ResHandler) GetAdderessById(c fiber.Ctx) error {
 	parsedUserId, err := utils.ParsePGIDs(localUser.ID)
 
 	if err != nil {
-		fmt.Printf("DEBUG ERROR return address: %v\n", err)
+		fmt.Printf("DEBUG ERROR address: %v\n", err)
 		return c.Status(500).JSON(fiber.Map{
 			"message": "Failed parse ID",
 		})
@@ -133,11 +133,85 @@ func (h *ResHandler) GetAdderessById(c fiber.Ctx) error {
 
 	resId, err := h.app.Query.GetUserResById(c.Context(), parsedUserId)
 
-	result, err := h.app.Query.GetUserResAddresses(c.Context(), resId)
+	result, err := h.app.Query.GetUserResAddressesById(c.Context(), resId)
 
 	return c.Status(200).JSON(fiber.Map{
 		"message":   "User addresses",
 		"addresses": result,
 	})
+
+}
+
+func (h *ResHandler) UpdateResAddress(c fiber.Ctx) error {
+	//copy of the RessAddressParam
+	var resUpdateParams ResAddressParam
+
+	if err := c.Bind().Body(&resUpdateParams); err != nil {
+		fmt.Printf("DEBUG ERROR body in address: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Invlaid request body",
+		})
+	}
+
+	// params id
+	paramId := c.Params("id")
+
+	// Parse the params id into pgtype
+
+	parsedParamId, err := utils.ParsePGIDs(paramId)
+
+	if err != nil {
+		fmt.Printf("DEBUG ERROR address: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Failed parse ID",
+		})
+	}
+
+	params := db.UpdateResAddressParams{
+		ID: parsedParamId,
+	}
+
+	if resUpdateParams.StreetName != nil {
+		params.StreetName = pgtype.Text{
+			String: *resUpdateParams.StreetName,
+		}
+	}
+	if resUpdateParams.State != nil {
+		params.State = pgtype.Text{
+			String: *resUpdateParams.State,
+		}
+	}
+	if resUpdateParams.Phone != nil {
+		params.Phone = pgtype.Text{
+			String: *resUpdateParams.Phone,
+		}
+	}
+
+	if resUpdateParams.Email != nil {
+		params.Email = pgtype.Text{
+			String: *resUpdateParams.Email,
+		}
+	}
+
+	if resUpdateParams.City != nil {
+		params.City = pgtype.Text{
+			String: *resUpdateParams.City,
+		}
+	}
+
+	if resUpdateParams.IsDefault {
+		err := h.app.Query.UpdateDefaultResBranch(c.Context())
+		if err != nil {
+			fmt.Printf("DEBUG ERROR return address: %v\n", err)
+			return c.Status(500).JSON(fiber.Map{
+				"message": "Failed to update branches",
+			})
+		}
+	}
+
+	// params.IsDefault = pgtype.Bool{
+	// 	Bool:  resParams.IsDefault,
+	// 	Valid: true,
+	// }
 
 }

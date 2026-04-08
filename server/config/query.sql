@@ -92,3 +92,9 @@ UPDATE res_addresses SET
    email = COALESCE(sqlc.narg(email), email),
    is_default = COALESCE(sqlc.narg('is_default'), is_default)
 WHERE id = $1 RETURNING * ;
+
+-- name: GetRestaurant :one
+SELECT * FROM restaurants WHERE id = $1;
+
+-- name: DeleteResAddress :exec
+DELETE FROM res_addresses WHERE id = $1;

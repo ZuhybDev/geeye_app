@@ -86,6 +86,15 @@ func (q *Queries) CreateResAddress(ctx context.Context, arg CreateResAddressPara
 	return i, err
 }
 
+const deleteResAddress = `-- name: DeleteResAddress :exec
+DELETE FROM res_addresses WHERE id = $1
+`
+
+func (q *Queries) DeleteResAddress(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteResAddress, id)
+	return err
+}
+
 const deleteRestaurant = `-- name: DeleteRestaurant :exec
 DELETE FROM restaurants WHERE id = $1
 `
@@ -102,6 +111,22 @@ DELETE FROM users WHERE id = $1
 func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteUser, id)
 	return err
+}
+
+const getRestaurant = `-- name: GetRestaurant :one
+SELECT id, name, created_at, updated_at FROM restaurants WHERE id = $1
+`
+
+func (q *Queries) GetRestaurant(ctx context.Context, id pgtype.UUID) (Restaurant, error) {
+	row := q.db.QueryRow(ctx, getRestaurant, id)
+	var i Restaurant
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one

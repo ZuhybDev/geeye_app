@@ -22,7 +22,5 @@ func GetResId(c fiber.Ctx, h *ResHandler) (pgtype.UUID, error) {
 
 	resId, err := h.app.Query.GetUserResById(c.Context(), parsedUserId)
 
-	fmt.Printf("user restaurant ID: %v", resId)
-
 	return resId, nil
 }

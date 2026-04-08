@@ -11,6 +11,7 @@ func RegisterRoutes(api fiber.Router, h *ResHandler) {
 	api.Post("/restaurant", middleware.AuthMiddleware, h.NewRestaurent)
 	api.Patch("/restaurant/update", middleware.AuthMiddleware, h.UpdateRestaurant)
 	api.Delete("/restaurant/delete", middleware.AuthMiddleware, h.DeleteRestaurant)
+	api.Get("/restaurant", middleware.AuthMiddleware, h.GetRestaurant)
 
 	// create address
 	api.Post("/restaurant/address", middleware.AuthMiddleware, h.CreateResAddress)
@@ -19,4 +20,5 @@ func RegisterRoutes(api fiber.Router, h *ResHandler) {
 
 	// Update address
 	api.Patch("/restaurant/address/:id", middleware.AuthMiddleware, h.UpdateResAddress)
+	api.Delete("/restaurant/address/:id", middleware.AuthMiddleware, h.DeleteAddress)
 }

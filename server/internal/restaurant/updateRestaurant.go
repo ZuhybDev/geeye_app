@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/ZuhybDev/geeyeApp/db"
-	"github.com/ZuhybDev/geeyeApp/middleware"
-	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -25,18 +23,7 @@ func (h *ResHandler) UpdateRestaurant(c fiber.Ctx) error {
 		})
 	}
 
-	localUser := c.Locals("user").(*middleware.UserPayload)
-
-	parsedId, err := utils.ParsePGIDs(localUser.ID)
-
-	if err != nil {
-		fmt.Println("DEGUB ERROR UDPATE RESTAURANT PARSE ID: ", err)
-		return c.Status(500).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
-	}
-
-	resId, err := h.app.Query.GetUserResById(c.Context(), parsedId)
+	resId, err := GetResId(c, h)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR UDPATE RESTAURANT GET ID FROM DB: ", err)

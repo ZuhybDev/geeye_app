@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/ZuhybDev/geeyeApp/db"
-	"github.com/ZuhybDev/geeyeApp/middleware"
 	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -21,8 +20,6 @@ type ResAddressParam struct {
 
 func (h *ResHandler) CreateResAddress(c fiber.Ctx) error {
 
-	localUser := c.Locals("user").(*middleware.UserPayload)
-
 	// incoming params
 	var resParams ResAddressParam
 	if err := c.Bind().Body(&resParams); err != nil {
@@ -31,16 +28,7 @@ func (h *ResHandler) CreateResAddress(c fiber.Ctx) error {
 		})
 	}
 
-	id, err := utils.ParsePGIDs(localUser.ID)
-
-	if err != nil {
-		fmt.Printf("DEBUG ERROR res_address: %v\n", err)
-		return c.Status(500).JSON(fiber.Map{
-			"message": "Internal server error",
-		})
-	}
-
-	resid, err := h.app.Query.GetUserResById(c.Context(), id)
+	resid, err := GetResId(c, h)
 
 	if err != nil {
 		fmt.Printf("DEBUG ERROR check restaurant: %v\n", err)
@@ -120,9 +108,7 @@ func (h *ResHandler) CreateResAddress(c fiber.Ctx) error {
 
 func (h *ResHandler) GetAdderessById(c fiber.Ctx) error {
 
-	localUser := c.Locals("user").(*middleware.UserPayload)
-
-	parsedUserId, err := utils.ParsePGIDs(localUser.ID)
+	resId, err := GetResId(c, h)
 
 	if err != nil {
 		fmt.Printf("DEBUG ERROR address: %v\n", err)
@@ -130,8 +116,6 @@ func (h *ResHandler) GetAdderessById(c fiber.Ctx) error {
 			"message": "Failed parse ID",
 		})
 	}
-
-	resId, err := h.app.Query.GetUserResById(c.Context(), parsedUserId)
 
 	result, err := h.app.Query.GetUserResAddressesById(c.Context(), resId)
 
@@ -157,7 +141,6 @@ func (h *ResHandler) UpdateResAddress(c fiber.Ctx) error {
 	paramId := c.Params("id")
 
 	// Parse the params id into pgtype
-
 	parsedParamId, err := utils.ParsePGIDs(paramId)
 
 	if err != nil {
@@ -174,44 +157,58 @@ func (h *ResHandler) UpdateResAddress(c fiber.Ctx) error {
 	if resUpdateParams.StreetName != nil {
 		params.StreetName = pgtype.Text{
 			String: *resUpdateParams.StreetName,
+			Valid:  true,
 		}
 	}
 	if resUpdateParams.State != nil {
 		params.State = pgtype.Text{
 			String: *resUpdateParams.State,
+			Valid:  true,
 		}
 	}
 	if resUpdateParams.Phone != nil {
 		params.Phone = pgtype.Text{
 			String: *resUpdateParams.Phone,
+			Valid:  true,
 		}
 	}
 
 	if resUpdateParams.Email != nil {
 		params.Email = pgtype.Text{
 			String: *resUpdateParams.Email,
+			Valid:  true,
 		}
 	}
 
 	if resUpdateParams.City != nil {
 		params.City = pgtype.Text{
 			String: *resUpdateParams.City,
+			Valid:  true,
 		}
 	}
 
+	// GetResId returns current user restaurant ID
+	userResId, err := GetResId(c, h)
+
 	if resUpdateParams.IsDefault {
-		err := h.app.Query.UpdateDefaultResBranch(c.Context())
+		err := h.app.Query.UpdateDefaultResBranch(c.Context(), userResId)
 		if err != nil {
 			fmt.Printf("DEBUG ERROR return address: %v\n", err)
 			return c.Status(500).JSON(fiber.Map{
-				"message": "Failed to update branches",
+				"message": "Failed to update address",
 			})
 		}
 	}
 
-	// params.IsDefault = pgtype.Bool{
-	// 	Bool:  resParams.IsDefault,
-	// 	Valid: true,
-	// }
+	params.IsDefault = pgtype.Bool{
+		Bool:  resUpdateParams.IsDefault,
+		Valid: true,
+	}
 
+	result, err := h.app.Query.UpdateResAddress(c.Context(), params)
+
+	return c.Status(200).JSON(fiber.Map{
+		"message":   "Address successfully updated",
+		"addresses": result,
+	})
 }

@@ -3,16 +3,12 @@ package restaurant
 import (
 	"fmt"
 
-	"github.com/ZuhybDev/geeyeApp/middleware"
-	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 )
 
 func (h *ResHandler) DeleteRestaurant(c fiber.Ctx) error {
 
-	localUser := c.Locals("user").(*middleware.UserPayload)
-
-	userResId, err := utils.ParsePGIDs(localUser.ID)
+	userResId, err := GetResId(c, h)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR: ", err)

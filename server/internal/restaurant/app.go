@@ -1,6 +1,8 @@
 package restaurant
 
-import app "github.com/ZuhybDev/geeyeApp/internal"
+import (
+	app "github.com/ZuhybDev/geeyeApp/internal"
+)
 
 type ResHandler struct {
 	app *app.App

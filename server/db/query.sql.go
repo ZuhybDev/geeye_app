@@ -86,6 +86,52 @@ func (q *Queries) CreateResAddress(ctx context.Context, arg CreateResAddressPara
 	return i, err
 }
 
+const createUserAddress = `-- name: CreateUserAddress :one
+INSERT INTO user_addresses (
+user_id,
+city,
+state,
+zip_code,
+is_default
+) VALUES(
+$1,
+$2,
+$3,
+$4,
+$5
+) RETURNING id, user_id, city, state, zip_code, is_default, updated_at, created_at
+`
+
+type CreateUserAddressParams struct {
+	UserID    pgtype.UUID `json:"user_id"`
+	City      pgtype.Text `json:"city"`
+	State     pgtype.Text `json:"state"`
+	ZipCode   pgtype.Text `json:"zip_code"`
+	IsDefault pgtype.Bool `json:"is_default"`
+}
+
+func (q *Queries) CreateUserAddress(ctx context.Context, arg CreateUserAddressParams) (UserAddress, error) {
+	row := q.db.QueryRow(ctx, createUserAddress,
+		arg.UserID,
+		arg.City,
+		arg.State,
+		arg.ZipCode,
+		arg.IsDefault,
+	)
+	var i UserAddress
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.City,
+		&i.State,
+		&i.ZipCode,
+		&i.IsDefault,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deleteResAddress = `-- name: DeleteResAddress :exec
 DELETE FROM res_addresses WHERE id = $1
 `
@@ -296,6 +342,16 @@ func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (User, error) 
 	return i, err
 }
 
+const setDefaultUserAddress = `-- name: SetDefaultUserAddress :exec
+UPDATE user_addresses SET is_default = false
+     WHERE user_id = $1 AND is_default = true
+`
+
+func (q *Queries) SetDefaultUserAddress(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, setDefaultUserAddress, userID)
+	return err
+}
+
 const updateDefaultResBranch = `-- name: UpdateDefaultResBranch :exec
 UPDATE res_addresses SET is_default = false
      WHERE restaurant_id = $1 AND is_default = true
@@ -420,7 +476,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateU
 }
 
 const userLogin = `-- name: UserLogin :one
-SELECT id, name, email, password, restaurant_id FROM users WHERE email = $1
+SELECT id, name, email, password, restaurant_id FROM users WHERE email = $1 LIMIT 1
 `
 
 type UserLoginRow struct {

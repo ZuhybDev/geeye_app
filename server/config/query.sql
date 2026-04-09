@@ -20,7 +20,10 @@ INSERT INTO users (
 ) RETURNING *;
 
 -- name: UserLogin :one
-SELECT id, name, email, password, restaurant_id FROM users WHERE email = $1;
+SELECT id, name, email, password, restaurant_id FROM users WHERE email = $1 LIMIT 1;
+
+-- -- name: CheckUserExist :one
+-- SELECT * FROM
 
 -- name: UpdateUser :one
 UPDATE users
@@ -98,3 +101,22 @@ SELECT * FROM restaurants WHERE id = $1;
 
 -- name: DeleteResAddress :exec
 DELETE FROM res_addresses WHERE id = $1;
+
+-- name: CreateUserAddress :one
+INSERT INTO user_addresses (
+user_id,
+city,
+state,
+zip_code,
+is_default
+) VALUES(
+sqlc.arg('user_id'),
+sqlc.narg('city'),
+sqlc.narg('state'),
+sqlc.narg('zip_code'),
+sqlc.arg('is_default')
+) RETURNING *;
+
+-- name: SetDefaultUserAddress :exec
+UPDATE user_addresses SET is_default = false
+     WHERE user_id = $1 AND is_default = true;

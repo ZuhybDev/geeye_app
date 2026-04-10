@@ -120,3 +120,14 @@ sqlc.arg('is_default')
 -- name: SetDefaultUserAddress :exec
 UPDATE user_addresses SET is_default = false
      WHERE user_id = $1 AND is_default = true;
+
+-- name: GetUserAddress :many
+SELECT * FROM user_addresses WHERE id = $1 OR user_id = $1;
+
+-- name: UpdateUserAddress :one
+UPDATE user_addresses SET
+      city = COALESCE(sqlc.narg(city), city),
+      state = COALESCE(sqlc.narg(state), state),
+      zip_code = COALESCE(sqlc.narg(zip_code), zip_code),
+      is_default = COALESCE(sqlc.narg('is_default'), is_default)
+WHERE id = $1 RETURNING *;

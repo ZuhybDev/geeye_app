@@ -15,7 +15,7 @@ import (
 )
 
 // This function returns all users
-func (h *Handler) GetListUsers(c fiber.Ctx) error {
+func (h *UserHandler) GetListUsers(c fiber.Ctx) error {
 	ctx := c.Context()
 
 	users, err := h.app.Query.GetUserList(ctx)
@@ -39,7 +39,7 @@ type NewUserParams struct {
 }
 
 // this function ccrates new user
-func (h *Handler) NewUser(c fiber.Ctx) error {
+func (h *UserHandler) NewUser(c fiber.Ctx) error {
 
 	var req NewUserParams
 
@@ -68,8 +68,8 @@ func (h *Handler) NewUser(c fiber.Ctx) error {
 		Name:        req.Name,
 		Email:       req.Email,
 		Password:    hashedPass,
-		PhoneNumber: ToPgTex(req.PhoneNumber),
-		ImageUrl:    ToPgTex(req.ImageUrl),
+		PhoneNumber: utils.ToPgTex(req.PhoneNumber),
+		ImageUrl:    utils.ToPgTex(req.ImageUrl),
 	}
 	if req.RestaurantID != nil {
 		parsedID, err := uuid.Parse(*req.RestaurantID)
@@ -144,7 +144,7 @@ type UpdateUserParams struct {
 }
 
 // This function updates user data
-func (h *Handler) UpdateUser(c fiber.Ctx) error {
+func (h *UserHandler) UpdateUser(c fiber.Ctx) error {
 
 	id := c.Params("id")
 	fmt.Println("id:", id)
@@ -221,7 +221,7 @@ func (h *Handler) UpdateUser(c fiber.Ctx) error {
 }
 
 // This functiosn deletes active user
-func (h *Handler) DeleteUser(c fiber.Ctx) error {
+func (h *UserHandler) DeleteUser(c fiber.Ctx) error {
 
 	localUser := c.Locals("user").(middleware.UserPayload)
 
@@ -255,7 +255,7 @@ type LoginUser struct {
 }
 
 // This function allows users to login and asgin cookies
-func (h *Handler) Login(c fiber.Ctx) error {
+func (h *UserHandler) Login(c fiber.Ctx) error {
 
 	var lgnUser LoginUser
 

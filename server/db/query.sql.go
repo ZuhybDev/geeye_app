@@ -175,6 +175,39 @@ func (q *Queries) GetRestaurant(ctx context.Context, id pgtype.UUID) (Restaurant
 	return i, err
 }
 
+const getUserAddress = `-- name: GetUserAddress :many
+SELECT id, user_id, city, state, zip_code, is_default, updated_at, created_at FROM user_addresses WHERE id = $1 OR user_id = $1
+`
+
+func (q *Queries) GetUserAddress(ctx context.Context, id pgtype.UUID) ([]UserAddress, error) {
+	rows, err := q.db.Query(ctx, getUserAddress, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserAddress
+	for rows.Next() {
+		var i UserAddress
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.City,
+			&i.State,
+			&i.ZipCode,
+			&i.IsDefault,
+			&i.UpdatedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserById = `-- name: GetUserById :one
 SELECT id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at FROM users WHERE id = $1
 `
@@ -426,6 +459,7 @@ func (q *Queries) UpdateRestaurant(ctx context.Context, arg UpdateRestaurantPara
 }
 
 const updateUser = `-- name: UpdateUser :one
+
 UPDATE users
 SET name = coalesce($1, name),
     email = coalesce($2, email),
@@ -454,6 +488,8 @@ type UpdateUserRow struct {
 	RestaurantID pgtype.UUID `json:"restaurant_id"`
 }
 
+// -- name: CheckUserExist :one
+// SELECT * FROM
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error) {
 	row := q.db.QueryRow(ctx, updateUser,
 		arg.Name,
@@ -471,6 +507,45 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateU
 		&i.PhoneNumber,
 		&i.ImageUrl,
 		&i.RestaurantID,
+	)
+	return i, err
+}
+
+const updateUserAddress = `-- name: UpdateUserAddress :one
+UPDATE user_addresses SET
+      city = COALESCE($2, city),
+      state = COALESCE($3, state),
+      zip_code = COALESCE($4, zip_code),
+      is_default = COALESCE($5, is_default)
+WHERE id = $1 RETURNING id, user_id, city, state, zip_code, is_default, updated_at, created_at
+`
+
+type UpdateUserAddressParams struct {
+	ID        pgtype.UUID `json:"id"`
+	City      pgtype.Text `json:"city"`
+	State     pgtype.Text `json:"state"`
+	ZipCode   pgtype.Text `json:"zip_code"`
+	IsDefault pgtype.Bool `json:"is_default"`
+}
+
+func (q *Queries) UpdateUserAddress(ctx context.Context, arg UpdateUserAddressParams) (UserAddress, error) {
+	row := q.db.QueryRow(ctx, updateUserAddress,
+		arg.ID,
+		arg.City,
+		arg.State,
+		arg.ZipCode,
+		arg.IsDefault,
+	)
+	var i UserAddress
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.City,
+		&i.State,
+		&i.ZipCode,
+		&i.IsDefault,
+		&i.UpdatedAt,
+		&i.CreatedAt,
 	)
 	return i, err
 }

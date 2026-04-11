@@ -188,3 +188,31 @@ func (h *UserHandler) GetUserAddresses(c fiber.Ctx) error {
 	})
 
 }
+
+func (h *UserHandler) deleteUserAddress(c fiber.Ctx) error {
+	paramId := c.Params("id")
+
+	addressId, err := utils.ParsePGIDs(paramId)
+
+	if err != nil {
+		fmt.Println("DEBUG ERROR: delete user address", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Failed to parse address id",
+		})
+	}
+
+	// currentUserId, err := GetUserId(c, h)
+
+	err = h.app.Query.DeleteUserAddress(c.Context(), addressId)
+
+	if err != nil {
+		fmt.Println("DEBUG ERROR: delete user address", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Failed to delete address",
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Successfully deleted user address",
+	})
+}

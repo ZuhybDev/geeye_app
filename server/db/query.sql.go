@@ -159,6 +159,15 @@ func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const deleteUserAddress = `-- name: DeleteUserAddress :exec
+DELETE FROM user_addresses WHERE id = $1
+`
+
+func (q *Queries) DeleteUserAddress(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUserAddress, id)
+	return err
+}
+
 const getRestaurant = `-- name: GetRestaurant :one
 SELECT id, name, created_at, updated_at FROM restaurants WHERE id = $1
 `

@@ -131,3 +131,6 @@ UPDATE user_addresses SET
       zip_code = COALESCE(sqlc.narg(zip_code), zip_code),
       is_default = COALESCE(sqlc.narg('is_default'), is_default)
 WHERE id = $1 RETURNING *;
+
+-- name: DeleteUserAddress :exec
+DELETE FROM user_addresses WHERE id = $1;

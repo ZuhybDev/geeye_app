@@ -134,3 +134,26 @@ WHERE id = $1 RETURNING *;
 
 -- name: DeleteUserAddress :exec
 DELETE FROM user_addresses WHERE id = $1;
+
+-- name: NewProduct :one
+INSERT INTO products (
+name,
+restaurant_id,
+description,
+price,
+category,
+images,
+stock_quantity,
+average_rating,
+total_reviews
+) VALUES(
+sqlc.arg('name'),
+sqlc.arg('restaurant_id'),
+sqlc.narg('description'),
+sqlc.arg('price'),
+sqlc.narg('category'),
+sqlc.arg('images'),
+sqlc.narg('stock_quantity'),
+sqlc.narg('average_rating'),
+sqlc.narg('total_reviews')
+) RETURNING *;

@@ -317,6 +317,64 @@ func (q *Queries) GetUserResById(ctx context.Context, id pgtype.UUID) (pgtype.UU
 	return restaurant_id, err
 }
 
+const newProduct = `-- name: NewProduct :one
+INSERT INTO products (
+name,
+restaurant_id,
+description,
+price,
+category,
+images,
+stock_quantity
+) VALUES(
+$1,
+$2,
+$3,
+$4,
+$5,
+$6,
+$7
+) RETURNING id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at
+`
+
+type NewProductParams struct {
+	Name          string         `json:"name"`
+	RestaurantID  pgtype.UUID    `json:"restaurant_id"`
+	Description   pgtype.Text    `json:"description"`
+	Price         pgtype.Numeric `json:"price"`
+	Category      pgtype.Text    `json:"category"`
+	Images        []string       `json:"images"`
+	StockQuantity pgtype.Int4    `json:"stock_quantity"`
+}
+
+func (q *Queries) NewProduct(ctx context.Context, arg NewProductParams) (Product, error) {
+	row := q.db.QueryRow(ctx, newProduct,
+		arg.Name,
+		arg.RestaurantID,
+		arg.Description,
+		arg.Price,
+		arg.Category,
+		arg.Images,
+		arg.StockQuantity,
+	)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.RestaurantID,
+		&i.Name,
+		&i.Description,
+		&i.Price,
+		&i.Category,
+		&i.Images,
+		&i.StockQuantity,
+		&i.AverageRating,
+		&i.TotalReviews,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const newResTaurant = `-- name: NewResTaurant :one
 INSERT INTO restaurants ( name ) VALUES ( $1) RETURNING id, name, created_at, updated_at
 `

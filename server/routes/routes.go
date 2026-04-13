@@ -5,6 +5,7 @@ import (
 	"github.com/ZuhybDev/geeyeApp/db"
 	env "github.com/ZuhybDev/geeyeApp/envConfig"
 	"github.com/ZuhybDev/geeyeApp/internal"
+	products "github.com/ZuhybDev/geeyeApp/internal/product"
 	"github.com/ZuhybDev/geeyeApp/internal/restaurant"
 	"github.com/ZuhybDev/geeyeApp/internal/users"
 	"github.com/gofiber/fiber/v3"
@@ -27,9 +28,11 @@ func SetupRoutes(app *fiber.App) {
 	// handler
 	resHandler := restaurant.NewRestaurantHandler(&appHandler)
 	userHandler := users.NewUserHandler(&appHandler)
+	productHandler := products.NewProductHandler(&appHandler)
 
 	// pass the app and handler to route registers
 	restaurant.RegisterRoutes(api, resHandler)
 	users.RegisterUserRoutes(api, userHandler)
+	products.RegisterProductRoutees(api, productHandler)
 
 }

@@ -325,9 +325,7 @@ description,
 price,
 category,
 images,
-stock_quantity,
-average_rating,
-total_reviews
+stock_quantity
 ) VALUES(
 $1,
 $2,
@@ -335,9 +333,7 @@ $3,
 $4,
 $5,
 $6,
-$7,
-$8,
-$9
+$7
 ) RETURNING id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at
 `
 
@@ -349,8 +345,6 @@ type NewProductParams struct {
 	Category      pgtype.Text    `json:"category"`
 	Images        []string       `json:"images"`
 	StockQuantity pgtype.Int4    `json:"stock_quantity"`
-	AverageRating pgtype.Float8  `json:"average_rating"`
-	TotalReviews  pgtype.Int4    `json:"total_reviews"`
 }
 
 func (q *Queries) NewProduct(ctx context.Context, arg NewProductParams) (Product, error) {
@@ -362,8 +356,6 @@ func (q *Queries) NewProduct(ctx context.Context, arg NewProductParams) (Product
 		arg.Category,
 		arg.Images,
 		arg.StockQuantity,
-		arg.AverageRating,
-		arg.TotalReviews,
 	)
 	var i Product
 	err := row.Scan(

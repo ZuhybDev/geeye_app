@@ -143,9 +143,7 @@ description,
 price,
 category,
 images,
-stock_quantity,
-average_rating,
-total_reviews
+stock_quantity
 ) VALUES(
 sqlc.arg('name'),
 sqlc.arg('restaurant_id'),
@@ -153,7 +151,5 @@ sqlc.narg('description'),
 sqlc.arg('price'),
 sqlc.narg('category'),
 sqlc.arg('images'),
-sqlc.narg('stock_quantity'),
-sqlc.narg('average_rating'),
-sqlc.narg('total_reviews')
+sqlc.narg('stock_quantity')
 ) RETURNING *;

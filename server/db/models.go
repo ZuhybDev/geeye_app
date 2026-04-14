@@ -106,6 +106,16 @@ type Restaurant struct {
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
+type ReviewsProduct struct {
+	ID        pgtype.UUID      `json:"id"`
+	ProductID pgtype.UUID      `json:"product_id"`
+	UserID    pgtype.UUID      `json:"user_id"`
+	OrderID   pgtype.UUID      `json:"order_id"`
+	Rating    int16            `json:"rating"`
+	Comment   pgtype.Text      `json:"comment"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
 type User struct {
 	ID           pgtype.UUID      `json:"id"`
 	Name         string           `json:"name"`
@@ -125,6 +135,6 @@ type UserAddress struct {
 	State     pgtype.Text      `json:"state"`
 	ZipCode   pgtype.Text      `json:"zip_code"`
 	IsDefault pgtype.Bool      `json:"is_default"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
 }

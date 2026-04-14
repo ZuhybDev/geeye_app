@@ -21,14 +21,221 @@ func (q *Queries) CheckEmail(ctx context.Context, email string) (string, error) 
 	return email, err
 }
 
-const getUserById = `-- name: GetUserById :one
-SELECT id FROM users WHERE id = $1
+const checkRestaurantID = `-- name: CheckRestaurantID :one
+SELECT id FROM restaurants WHERE id = $1
 `
 
-func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
-	row := q.db.QueryRow(ctx, getUserById, id)
+func (q *Queries) CheckRestaurantID(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, checkRestaurantID, id)
 	err := row.Scan(&id)
 	return id, err
+}
+
+const createResAddress = `-- name: CreateResAddress :one
+INSERT INTO res_addresses (
+  restaurant_id,
+  street_name,
+  city,
+  state,
+  phone,
+  email,
+  is_default
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7
+) RETURNING id, restaurant_id, street_name, city, state, phone, email, is_default, created_at
+`
+
+type CreateResAddressParams struct {
+	RestaurantID pgtype.UUID `json:"restaurant_id"`
+	StreetName   pgtype.Text `json:"street_name"`
+	City         pgtype.Text `json:"city"`
+	State        pgtype.Text `json:"state"`
+	Phone        pgtype.Text `json:"phone"`
+	Email        pgtype.Text `json:"email"`
+	IsDefault    pgtype.Bool `json:"is_default"`
+}
+
+func (q *Queries) CreateResAddress(ctx context.Context, arg CreateResAddressParams) (ResAddress, error) {
+	row := q.db.QueryRow(ctx, createResAddress,
+		arg.RestaurantID,
+		arg.StreetName,
+		arg.City,
+		arg.State,
+		arg.Phone,
+		arg.Email,
+		arg.IsDefault,
+	)
+	var i ResAddress
+	err := row.Scan(
+		&i.ID,
+		&i.RestaurantID,
+		&i.StreetName,
+		&i.City,
+		&i.State,
+		&i.Phone,
+		&i.Email,
+		&i.IsDefault,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createUserAddress = `-- name: CreateUserAddress :one
+INSERT INTO user_addresses (
+user_id,
+city,
+state,
+zip_code,
+is_default
+) VALUES(
+$1,
+$2,
+$3,
+$4,
+$5
+) RETURNING id, user_id, city, state, zip_code, is_default, updated_at, created_at
+`
+
+type CreateUserAddressParams struct {
+	UserID    pgtype.UUID `json:"user_id"`
+	City      pgtype.Text `json:"city"`
+	State     pgtype.Text `json:"state"`
+	ZipCode   pgtype.Text `json:"zip_code"`
+	IsDefault pgtype.Bool `json:"is_default"`
+}
+
+func (q *Queries) CreateUserAddress(ctx context.Context, arg CreateUserAddressParams) (UserAddress, error) {
+	row := q.db.QueryRow(ctx, createUserAddress,
+		arg.UserID,
+		arg.City,
+		arg.State,
+		arg.ZipCode,
+		arg.IsDefault,
+	)
+	var i UserAddress
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.City,
+		&i.State,
+		&i.ZipCode,
+		&i.IsDefault,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const deleteResAddress = `-- name: DeleteResAddress :exec
+DELETE FROM res_addresses WHERE id = $1
+`
+
+func (q *Queries) DeleteResAddress(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteResAddress, id)
+	return err
+}
+
+const deleteRestaurant = `-- name: DeleteRestaurant :exec
+DELETE FROM restaurants WHERE id = $1
+`
+
+func (q *Queries) DeleteRestaurant(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteRestaurant, id)
+	return err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUser, id)
+	return err
+}
+
+const deleteUserAddress = `-- name: DeleteUserAddress :exec
+DELETE FROM user_addresses WHERE id = $1
+`
+
+func (q *Queries) DeleteUserAddress(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUserAddress, id)
+	return err
+}
+
+const getRestaurant = `-- name: GetRestaurant :one
+SELECT id, name, created_at, updated_at FROM restaurants WHERE id = $1
+`
+
+func (q *Queries) GetRestaurant(ctx context.Context, id pgtype.UUID) (Restaurant, error) {
+	row := q.db.QueryRow(ctx, getRestaurant, id)
+	var i Restaurant
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserAddress = `-- name: GetUserAddress :many
+SELECT id, user_id, city, state, zip_code, is_default, updated_at, created_at FROM user_addresses WHERE id = $1 OR user_id = $1
+`
+
+func (q *Queries) GetUserAddress(ctx context.Context, id pgtype.UUID) ([]UserAddress, error) {
+	rows, err := q.db.Query(ctx, getUserAddress, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UserAddress
+	for rows.Next() {
+		var i UserAddress
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.City,
+			&i.State,
+			&i.ZipCode,
+			&i.IsDefault,
+			&i.UpdatedAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.PhoneNumber,
+		&i.ImageUrl,
+		&i.RestaurantID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getUserList = `-- name: GetUserList :many
@@ -63,6 +270,125 @@ func (q *Queries) GetUserList(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUserResAddressesById = `-- name: GetUserResAddressesById :many
+SELECT id, restaurant_id, street_name, city, state, phone, email, is_default, created_at FROM res_addresses WHERE restaurant_id = $1 ORDER BY created_at
+`
+
+func (q *Queries) GetUserResAddressesById(ctx context.Context, restaurantID pgtype.UUID) ([]ResAddress, error) {
+	rows, err := q.db.Query(ctx, getUserResAddressesById, restaurantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ResAddress
+	for rows.Next() {
+		var i ResAddress
+		if err := rows.Scan(
+			&i.ID,
+			&i.RestaurantID,
+			&i.StreetName,
+			&i.City,
+			&i.State,
+			&i.Phone,
+			&i.Email,
+			&i.IsDefault,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserResById = `-- name: GetUserResById :one
+SELECT restaurant_id FROM users WHERE id = $1
+`
+
+func (q *Queries) GetUserResById(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getUserResById, id)
+	var restaurant_id pgtype.UUID
+	err := row.Scan(&restaurant_id)
+	return restaurant_id, err
+}
+
+const newProduct = `-- name: NewProduct :one
+INSERT INTO products (
+name,
+restaurant_id,
+description,
+price,
+category,
+images,
+stock_quantity
+) VALUES(
+$1,
+$2,
+$3,
+$4,
+$5,
+$6,
+$7
+) RETURNING id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at
+`
+
+type NewProductParams struct {
+	Name          string         `json:"name"`
+	RestaurantID  pgtype.UUID    `json:"restaurant_id"`
+	Description   pgtype.Text    `json:"description"`
+	Price         pgtype.Numeric `json:"price"`
+	Category      pgtype.Text    `json:"category"`
+	Images        []string       `json:"images"`
+	StockQuantity pgtype.Int4    `json:"stock_quantity"`
+}
+
+func (q *Queries) NewProduct(ctx context.Context, arg NewProductParams) (Product, error) {
+	row := q.db.QueryRow(ctx, newProduct,
+		arg.Name,
+		arg.RestaurantID,
+		arg.Description,
+		arg.Price,
+		arg.Category,
+		arg.Images,
+		arg.StockQuantity,
+	)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.RestaurantID,
+		&i.Name,
+		&i.Description,
+		&i.Price,
+		&i.Category,
+		&i.Images,
+		&i.StockQuantity,
+		&i.AverageRating,
+		&i.TotalReviews,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const newResTaurant = `-- name: NewResTaurant :one
+INSERT INTO restaurants ( name ) VALUES ( $1) RETURNING id, name, created_at, updated_at
+`
+
+func (q *Queries) NewResTaurant(ctx context.Context, name string) (Restaurant, error) {
+	row := q.db.QueryRow(ctx, newResTaurant, name)
+	var i Restaurant
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const newUser = `-- name: NewUser :one
@@ -116,7 +442,91 @@ func (q *Queries) NewUser(ctx context.Context, arg NewUserParams) (User, error) 
 	return i, err
 }
 
+const setDefaultUserAddress = `-- name: SetDefaultUserAddress :exec
+UPDATE user_addresses SET is_default = false
+     WHERE user_id = $1 AND is_default = true
+`
+
+func (q *Queries) SetDefaultUserAddress(ctx context.Context, userID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, setDefaultUserAddress, userID)
+	return err
+}
+
+const updateDefaultResBranch = `-- name: UpdateDefaultResBranch :exec
+UPDATE res_addresses SET is_default = false
+     WHERE restaurant_id = $1 AND is_default = true
+`
+
+func (q *Queries) UpdateDefaultResBranch(ctx context.Context, restaurantID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, updateDefaultResBranch, restaurantID)
+	return err
+}
+
+const updateResAddress = `-- name: UpdateResAddress :one
+UPDATE res_addresses SET
+   street_name = coalesce($2, street_name),
+   city = COALESCE($3, city),
+   state = COALESCE($4, state),
+   phone = COALESCE($5, phone),
+   email = COALESCE($6, email),
+   is_default = COALESCE($7, is_default)
+WHERE id = $1 RETURNING id, restaurant_id, street_name, city, state, phone, email, is_default, created_at
+`
+
+type UpdateResAddressParams struct {
+	ID         pgtype.UUID `json:"id"`
+	StreetName pgtype.Text `json:"street_name"`
+	City       pgtype.Text `json:"city"`
+	State      pgtype.Text `json:"state"`
+	Phone      pgtype.Text `json:"phone"`
+	Email      pgtype.Text `json:"email"`
+	IsDefault  pgtype.Bool `json:"is_default"`
+}
+
+func (q *Queries) UpdateResAddress(ctx context.Context, arg UpdateResAddressParams) (ResAddress, error) {
+	row := q.db.QueryRow(ctx, updateResAddress,
+		arg.ID,
+		arg.StreetName,
+		arg.City,
+		arg.State,
+		arg.Phone,
+		arg.Email,
+		arg.IsDefault,
+	)
+	var i ResAddress
+	err := row.Scan(
+		&i.ID,
+		&i.RestaurantID,
+		&i.StreetName,
+		&i.City,
+		&i.State,
+		&i.Phone,
+		&i.Email,
+		&i.IsDefault,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateRestaurant = `-- name: UpdateRestaurant :one
+UPDATE restaurants  SET name = coalesce($1, name)
+ WHERE id = $2 RETURNING name
+`
+
+type UpdateRestaurantParams struct {
+	Name pgtype.Text `json:"name"`
+	ID   pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateRestaurant(ctx context.Context, arg UpdateRestaurantParams) (string, error) {
+	row := q.db.QueryRow(ctx, updateRestaurant, arg.Name, arg.ID)
+	var name string
+	err := row.Scan(&name)
+	return name, err
+}
+
 const updateUser = `-- name: UpdateUser :one
+
 UPDATE users
 SET name = coalesce($1, name),
     email = coalesce($2, email),
@@ -145,6 +555,8 @@ type UpdateUserRow struct {
 	RestaurantID pgtype.UUID `json:"restaurant_id"`
 }
 
+// -- name: CheckUserExist :one
+// SELECT * FROM
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error) {
 	row := q.db.QueryRow(ctx, updateUser,
 		arg.Name,
@@ -166,15 +578,55 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateU
 	return i, err
 }
 
+const updateUserAddress = `-- name: UpdateUserAddress :one
+UPDATE user_addresses SET
+      city = COALESCE($2, city),
+      state = COALESCE($3, state),
+      zip_code = COALESCE($4, zip_code),
+      is_default = COALESCE($5, is_default)
+WHERE id = $1 RETURNING id, user_id, city, state, zip_code, is_default, updated_at, created_at
+`
+
+type UpdateUserAddressParams struct {
+	ID        pgtype.UUID `json:"id"`
+	City      pgtype.Text `json:"city"`
+	State     pgtype.Text `json:"state"`
+	ZipCode   pgtype.Text `json:"zip_code"`
+	IsDefault pgtype.Bool `json:"is_default"`
+}
+
+func (q *Queries) UpdateUserAddress(ctx context.Context, arg UpdateUserAddressParams) (UserAddress, error) {
+	row := q.db.QueryRow(ctx, updateUserAddress,
+		arg.ID,
+		arg.City,
+		arg.State,
+		arg.ZipCode,
+		arg.IsDefault,
+	)
+	var i UserAddress
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.City,
+		&i.State,
+		&i.ZipCode,
+		&i.IsDefault,
+		&i.UpdatedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const userLogin = `-- name: UserLogin :one
-SELECT id, name, email, password FROM users WHERE email = $1
+SELECT id, name, email, password, restaurant_id FROM users WHERE email = $1 LIMIT 1
 `
 
 type UserLoginRow struct {
-	ID       pgtype.UUID `json:"id"`
-	Name     string      `json:"name"`
-	Email    string      `json:"email"`
-	Password string      `json:"password"`
+	ID           pgtype.UUID `json:"id"`
+	Name         string      `json:"name"`
+	Email        string      `json:"email"`
+	Password     string      `json:"password"`
+	RestaurantID pgtype.UUID `json:"restaurant_id"`
 }
 
 func (q *Queries) UserLogin(ctx context.Context, email string) (UserLoginRow, error) {
@@ -185,6 +637,7 @@ func (q *Queries) UserLogin(ctx context.Context, email string) (UserLoginRow, er
 		&i.Name,
 		&i.Email,
 		&i.Password,
+		&i.RestaurantID,
 	)
 	return i, err
 }

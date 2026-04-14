@@ -2,30 +2,26 @@ package main
 
 import (
 	"log"
-	"os"
 
 	connection "github.com/ZuhybDev/geeyeApp/config"
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
 	"github.com/ZuhybDev/geeyeApp/routes"
 	"github.com/gofiber/fiber/v3"
-	"github.com/joho/godotenv"
 )
 
 func main() {
 
-	// ENV
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Unable to load ENV environments")
-	}
+	// init the functions
+	env.Init()
 
-	// Connect once!
+	// Connect once
 	connection.Connect()
 	if connection.DBPool == nil {
 		log.Fatal("Failed to connect to DB")
 	}
 
 	app := fiber.New()
-	port := os.Getenv("PORT")
+	port := env.ENV.PORT
 
 	routes.SetupRoutes(app)
 

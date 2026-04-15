@@ -18,6 +18,7 @@ type Product struct {
 	StockQuantity int32          `json:"stock_quantity"`
 }
 
+// This function creates a new product
 func (h *ProductsHandler) NewProducts(c fiber.Ctx) error {
 	var productData Product
 	if err := c.Bind().Body(&productData); err != nil {
@@ -86,4 +87,77 @@ func (h *ProductsHandler) NewProducts(c fiber.Ctx) error {
 		"message": "Product successfully created",
 		"product": product,
 	})
+}
+
+type UpdateProduct struct {
+	Name          string         `json:"name"`
+	Description   *string        `json:"description"`
+	Price         pgtype.Numeric `json:"price"`
+	Category      *string        `json:"category"`
+	Images        *[]string      `json:"images"`
+	StockQuantity int32          `json:"stock_quantity"`
+}
+
+// This function Updates an existing products
+func (h *ProductsHandler) UpdateProduct(c fiber.Ctx) error {
+
+	var updateProdParams UpdateProduct
+
+	productId := c.Params("id")
+	parsedPrpductId, err := utils.ParsePGIDs(productId)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Failed to parse product id",
+		})
+	}
+
+	if err := c.Bind().Body(&updateProdParams); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid body request",
+		})
+	}
+
+	userResId, err := GetUserResId(c, h)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid restaurant id",
+		})
+	}
+
+	products, err := h.app.Query.GetProducts(c.Context(), parsedPrpductId)
+
+	if products.RestaurantID != userResId {
+		return c.Status(402).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	params := db.UpdateProductParams{
+		ID:          parsedPrpductId,
+		Name:        utils.ToPgTex(&updateProdParams.Name),
+		Category:    utils.ToPgTex(updateProdParams.Category),
+		Description: utils.ToPgTex(updateProdParams.Description),
+		Price:       updateProdParams.Price,
+		Images:      *updateProdParams.Images,
+		StockQuantity: pgtype.Int4{
+			Int32: updateProdParams.StockQuantity,
+			Valid: true,
+		},
+	}
+
+	updatedProduct, err := h.app.Query.UpdateProduct(c.Context(), params)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Failed to update product",
+		})
+	}
+
+	return c.Status(400).JSON(fiber.Map{
+		"message": "Successfully updated product",
+		"product": updatedProduct,
+	})
+
 }

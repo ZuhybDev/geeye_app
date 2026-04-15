@@ -168,6 +168,30 @@ func (q *Queries) DeleteUserAddress(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const getProducts = `-- name: GetProducts :one
+SELECT id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at FROM products WHERE id = $1
+`
+
+func (q *Queries) GetProducts(ctx context.Context, id pgtype.UUID) (Product, error) {
+	row := q.db.QueryRow(ctx, getProducts, id)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.RestaurantID,
+		&i.Name,
+		&i.Description,
+		&i.Price,
+		&i.Category,
+		&i.Images,
+		&i.StockQuantity,
+		&i.AverageRating,
+		&i.TotalReviews,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getRestaurant = `-- name: GetRestaurant :one
 SELECT id, name, created_at, updated_at FROM restaurants WHERE id = $1
 `
@@ -460,6 +484,55 @@ UPDATE res_addresses SET is_default = false
 func (q *Queries) UpdateDefaultResBranch(ctx context.Context, restaurantID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, updateDefaultResBranch, restaurantID)
 	return err
+}
+
+const updateProduct = `-- name: UpdateProduct :one
+UPDATE products SET
+   name = coalesce($2, name),
+   description = COALESCE($3, description),
+   price = COALESCE($4, price),
+   category = COALESCE($5, category),
+   images = COALESCE($6, images),
+   stock_quantity = COALESCE($7, stock_quantity)
+WHERE id = $1 RETURNING id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at
+`
+
+type UpdateProductParams struct {
+	ID            pgtype.UUID    `json:"id"`
+	Name          pgtype.Text    `json:"name"`
+	Description   pgtype.Text    `json:"description"`
+	Price         pgtype.Numeric `json:"price"`
+	Category      pgtype.Text    `json:"category"`
+	Images        []string       `json:"images"`
+	StockQuantity pgtype.Int4    `json:"stock_quantity"`
+}
+
+func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error) {
+	row := q.db.QueryRow(ctx, updateProduct,
+		arg.ID,
+		arg.Name,
+		arg.Description,
+		arg.Price,
+		arg.Category,
+		arg.Images,
+		arg.StockQuantity,
+	)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.RestaurantID,
+		&i.Name,
+		&i.Description,
+		&i.Price,
+		&i.Category,
+		&i.Images,
+		&i.StockQuantity,
+		&i.AverageRating,
+		&i.TotalReviews,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const updateResAddress = `-- name: UpdateResAddress :one

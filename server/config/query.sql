@@ -153,3 +153,17 @@ sqlc.narg('category'),
 sqlc.arg('images'),
 sqlc.narg('stock_quantity')
 ) RETURNING *;
+
+
+-- name: UpdateProduct :one
+UPDATE products SET
+   name = coalesce(sqlc.narg(name), name),
+   description = COALESCE(sqlc.narg(description), description),
+   price = COALESCE(sqlc.narg(price), price),
+   category = COALESCE(sqlc.narg(category), category),
+   images = COALESCE(sqlc.narg(images), images),
+   stock_quantity = COALESCE(sqlc.narg(stock_quantity), stock_quantity)
+WHERE id = $1 RETURNING * ;
+
+-- name: GetProducts :one
+SELECT * FROM products WHERE id = $1;

@@ -132,6 +132,15 @@ func (q *Queries) CreateUserAddress(ctx context.Context, arg CreateUserAddressPa
 	return i, err
 }
 
+const deleteProductById = `-- name: DeleteProductById :exec
+DELETE FROM products WHERE id = $1
+`
+
+func (q *Queries) DeleteProductById(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteProductById, id)
+	return err
+}
+
 const deleteResAddress = `-- name: DeleteResAddress :exec
 DELETE FROM res_addresses WHERE id = $1
 `

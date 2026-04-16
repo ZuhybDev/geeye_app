@@ -9,5 +9,6 @@ func RegisterProductRoutees(api fiber.Router, h *ProductsHandler) {
 
 	api.Post("/product", middleware.AuthMiddleware, h.NewProducts)
 	api.Patch("/product/:id", middleware.AuthMiddleware, h.UpdateProduct)
+	api.Delete("/product/:id", middleware.AuthMiddleware, h.DeleteProduct)
 
 }

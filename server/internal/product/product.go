@@ -155,9 +155,50 @@ func (h *ProductsHandler) UpdateProduct(c fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(400).JSON(fiber.Map{
+	return c.Status(200).JSON(fiber.Map{
 		"message": "Successfully updated product",
 		"product": updatedProduct,
 	})
 
+}
+
+func (h *ProductsHandler) DeleteProduct(c fiber.Ctx) error {
+
+	id := c.Params("id")
+
+	productId, err := utils.ParsePGIDs(id)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Failed to parse product id",
+		})
+	}
+
+	userResId, err := GetUserResId(c, h)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid restaurant id",
+		})
+	}
+
+	products, err := h.app.Query.GetProducts(c.Context(), productId)
+
+	if products.RestaurantID != userResId {
+		return c.Status(402).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	err = h.app.Query.DeleteProductById(c.Context(), productId)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Failed to delete product",
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Successfully deleted",
+	})
 }

@@ -167,3 +167,6 @@ WHERE id = $1 RETURNING * ;
 
 -- name: GetProducts :one
 SELECT * FROM products WHERE id = $1;
+
+-- name: DeleteProductById :exec
+DELETE FROM products WHERE id = $1;

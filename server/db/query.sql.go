@@ -177,6 +177,43 @@ func (q *Queries) DeleteUserAddress(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const getAllProducts = `-- name: GetAllProducts :many
+SELECT id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at FROM products WHERE restaurant_id = $1
+`
+
+func (q *Queries) GetAllProducts(ctx context.Context, restaurantID pgtype.UUID) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getAllProducts, restaurantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.RestaurantID,
+			&i.Name,
+			&i.Description,
+			&i.Price,
+			&i.Category,
+			&i.Images,
+			&i.StockQuantity,
+			&i.AverageRating,
+			&i.TotalReviews,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProducts = `-- name: GetProducts :one
 SELECT id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at FROM products WHERE id = $1
 `

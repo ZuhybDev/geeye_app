@@ -170,3 +170,6 @@ SELECT * FROM products WHERE id = $1;
 
 -- name: DeleteProductById :exec
 DELETE FROM products WHERE id = $1;
+
+-- name: GetAllProducts :many
+SELECT * FROM products WHERE restaurant_id = $1;

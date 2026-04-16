@@ -184,6 +184,12 @@ func (h *ProductsHandler) DeleteProduct(c fiber.Ctx) error {
 
 	products, err := h.app.Query.GetProducts(c.Context(), productId)
 
+	if !products.ID.Valid {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "No Products was found",
+		})
+	}
+
 	if products.RestaurantID != userResId {
 		return c.Status(402).JSON(fiber.Map{
 			"message": "Unauthorized",
@@ -201,4 +207,28 @@ func (h *ProductsHandler) DeleteProduct(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{
 		"message": "Successfully deleted",
 	})
+}
+
+func (h *ProductsHandler) GetAllProduct(c fiber.Ctx) error {
+
+	restaurantId, err := GetUserResId(c, h)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid restaurant id",
+		})
+	}
+
+	products, err := h.app.Query.GetAllProducts(c.Context(), restaurantId)
+
+	if len(products) == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "No Products was found",
+		})
+	}
+
+	return c.Status(400).JSON(fiber.Map{
+		"products": products,
+	})
+
 }

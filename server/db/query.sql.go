@@ -132,6 +132,15 @@ func (q *Queries) CreateUserAddress(ctx context.Context, arg CreateUserAddressPa
 	return i, err
 }
 
+const deleteCar = `-- name: DeleteCar :exec
+DELETE FROM cars WHERE id = $1
+`
+
+func (q *Queries) DeleteCar(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteCar, id)
+	return err
+}
+
 const deleteProductById = `-- name: DeleteProductById :exec
 DELETE FROM products WHERE id = $1
 `
@@ -177,6 +186,36 @@ func (q *Queries) DeleteUserAddress(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const getAllCars = `-- name: GetAllCars :many
+SELECT id, name, color, number_plate, created_at FROM cars
+`
+
+func (q *Queries) GetAllCars(ctx context.Context) ([]Car, error) {
+	rows, err := q.db.Query(ctx, getAllCars)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Car
+	for rows.Next() {
+		var i Car
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Color,
+			&i.NumberPlate,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllProducts = `-- name: GetAllProducts :many
 SELECT id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at FROM products WHERE restaurant_id = $1
 `
@@ -203,6 +242,36 @@ func (q *Queries) GetAllProducts(ctx context.Context, restaurantID pgtype.UUID) 
 			&i.TotalReviews,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCarBYId = `-- name: GetCarBYId :many
+SELECT id, name, color, number_plate, created_at FROM cars WHERE id = $1
+`
+
+func (q *Queries) GetCarBYId(ctx context.Context, id pgtype.UUID) ([]Car, error) {
+	rows, err := q.db.Query(ctx, getCarBYId, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Car
+	for rows.Next() {
+		var i Car
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Color,
+			&i.NumberPlate,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -387,6 +456,38 @@ func (q *Queries) GetUserResById(ctx context.Context, id pgtype.UUID) (pgtype.UU
 	return restaurant_id, err
 }
 
+const newCar = `-- name: NewCar :one
+INSERT INTO cars (
+name,
+color,
+number_plate
+) VALUES (
+
+$1,
+$2,
+$3
+) RETURNING id, name, color, number_plate, created_at
+`
+
+type NewCarParams struct {
+	Name        pgtype.Text `json:"name"`
+	Color       pgtype.Text `json:"color"`
+	NumberPlate pgtype.Text `json:"number_plate"`
+}
+
+func (q *Queries) NewCar(ctx context.Context, arg NewCarParams) (Car, error) {
+	row := q.db.QueryRow(ctx, newCar, arg.Name, arg.Color, arg.NumberPlate)
+	var i Car
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Color,
+		&i.NumberPlate,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const newProduct = `-- name: NewProduct :one
 INSERT INTO products (
 name,
@@ -520,6 +621,39 @@ UPDATE user_addresses SET is_default = false
 func (q *Queries) SetDefaultUserAddress(ctx context.Context, userID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, setDefaultUserAddress, userID)
 	return err
+}
+
+const updateCar = `-- name: UpdateCar :one
+UPDATE cars SET
+    name = coalesce($2, name),
+    color = coalesce($3, color),
+    number_plate = coalesce($4, number_plate)
+    WHERE id = $1 RETURNING id, name, color, number_plate, created_at
+`
+
+type UpdateCarParams struct {
+	ID          pgtype.UUID `json:"id"`
+	Name        pgtype.Text `json:"name"`
+	Color       pgtype.Text `json:"color"`
+	NumberPlate pgtype.Text `json:"number_plate"`
+}
+
+func (q *Queries) UpdateCar(ctx context.Context, arg UpdateCarParams) (Car, error) {
+	row := q.db.QueryRow(ctx, updateCar,
+		arg.ID,
+		arg.Name,
+		arg.Color,
+		arg.NumberPlate,
+	)
+	var i Car
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Color,
+		&i.NumberPlate,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const updateDefaultResBranch = `-- name: UpdateDefaultResBranch :exec

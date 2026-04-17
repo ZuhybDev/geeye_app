@@ -173,3 +173,31 @@ DELETE FROM products WHERE id = $1;
 
 -- name: GetAllProducts :many
 SELECT * FROM products WHERE restaurant_id = $1;
+
+-- name: NewCar :one
+INSERT INTO cars (
+name,
+color,
+number_plate
+) VALUES (
+
+sqlc.arg('name'),
+sqlc.arg('color'),
+sqlc.arg('number_plate')
+) RETURNING *;
+
+-- name: UpdateCar :one
+UPDATE cars SET
+    name = coalesce(sqlc.narg(name), name),
+    color = coalesce(sqlc.narg(color), color),
+    number_plate = coalesce(sqlc.narg(number_plate), number_plate)
+    WHERE id = $1 RETURNING *;
+
+-- name: DeleteCar :exec
+DELETE FROM cars WHERE id = $1;
+
+-- name: GetCarBYId :many
+SELECT * FROM cars WHERE id = $1;
+
+-- name: GetAllCars :many
+SELECT * FROM cars;

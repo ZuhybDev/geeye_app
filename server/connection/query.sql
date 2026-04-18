@@ -204,12 +204,13 @@ SELECT * FROM cars;
 
 -- name: NewDeliver :one
 INSERT INTO deliver (
-  name, password, license_number, national_id, car_id, si_online
+  name, email, password, license_number, national_id, car_id, si_online
 ) VALUES (
-  sqlc.arg('name'), 
-  sqlc.arg('password'), 
-  sqlc.arg('license_number'), 
-  sqlc.arg('national_id'), 
+  sqlc.arg('name'),
+  sqlc.arg('email'),
+  sqlc.arg('password'),
+  sqlc.arg('license_number'),
+  sqlc.arg('national_id'),
   sqlc.arg('car_id'),
   sqlc.arg('si_online')
 ) RETURNING *;

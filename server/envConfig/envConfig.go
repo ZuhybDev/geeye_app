@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	connection "github.com/ZuhybDev/geeyeApp/config"
+	"github.com/ZuhybDev/geeyeApp/connection"
 	"github.com/ZuhybDev/geeyeApp/db"
 	"github.com/joho/godotenv"
 )

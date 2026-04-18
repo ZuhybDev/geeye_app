@@ -5,9 +5,11 @@ import (
 )
 
 type DeliverHandler struct {
-	app *env.Config
+	Cfg *env.Config
 }
 
 func NewDeliverHandler(a *env.Config) *DeliverHandler {
-	return &DeliverHandler{app: a}
+	return &DeliverHandler{
+		Cfg: a,
+	}
 }

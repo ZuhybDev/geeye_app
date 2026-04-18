@@ -555,20 +555,22 @@ func (q *Queries) NewCar(ctx context.Context, arg NewCarParams) (Car, error) {
 }
 
 const newDeliver = `-- name: NewDeliver :one
-INSERT INTO  deliver (
-  name, password, license_number, national_id, car_id, si_online
+INSERT INTO deliver (
+  name, email, password, license_number, national_id, car_id, si_online
 ) VALUES (
-  $1, 
-  $2, 
-  $3, 
-  $4, 
+  $1,
+  $2,
+  $3,
+  $4,
   $5,
-  $6
+  $6,
+  $7
 ) RETURNING id, name, email, password, license_number, national_id, car_id, created_at, updated_at, si_online
 `
 
 type NewDeliverParams struct {
 	Name          string      `json:"name"`
+	Email         string      `json:"email"`
 	Password      string      `json:"password"`
 	LicenseNumber pgtype.Text `json:"license_number"`
 	NationalID    pgtype.Text `json:"national_id"`
@@ -579,6 +581,7 @@ type NewDeliverParams struct {
 func (q *Queries) NewDeliver(ctx context.Context, arg NewDeliverParams) (Deliver, error) {
 	row := q.db.QueryRow(ctx, newDeliver,
 		arg.Name,
+		arg.Email,
 		arg.Password,
 		arg.LicenseNumber,
 		arg.NationalID,

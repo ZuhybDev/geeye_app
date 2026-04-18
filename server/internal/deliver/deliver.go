@@ -14,6 +14,7 @@ import (
 
 type ReqDeliverParams struct {
 	Name          string `json:"name"`
+	Email         string `json:"email"`
 	Password      string `json:"password"`
 	LicenseNumber string `json:"license_number"`
 	NationalID    string `json:"national_id"`
@@ -72,6 +73,7 @@ func (h *DeliverHandler) NewDeliver(c fiber.Ctx) error {
 	/// pass the deliver data
 	params := db.NewDeliverParams{
 		Name:          reqParams.Name,
+		Email:         reqParams.Email,
 		Password:      hashedPassword,
 		LicenseNumber: utils.ToPgTex(&reqParams.LicenseNumber),
 		NationalID:    utils.ToPgTex(&reqParams.NationalID),
@@ -87,9 +89,14 @@ func (h *DeliverHandler) NewDeliver(c fiber.Ctx) error {
 
 	// fmt.Println(params) //todo
 
-	deliver, err := h.app.Query.NewDeliver(c.Context(), params)
+	deliver, err := h.Cfg.Query.NewDeliver(c.Context(), params)
 
-	fmt.Println(deliver)
+	if err != nil {
+		fmt.Printf("Failed to save deliver: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Failed to save data deliver",
+		})
+	}
 
 	claims := middleware.UserPayload{
 		ID:    deliver.ID.String(),
@@ -104,7 +111,7 @@ func (h *DeliverHandler) NewDeliver(c fiber.Ctx) error {
 	// 4. Generate JWT using the REAL ID from the database
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tkn, err := token.SignedString([]byte(h.app.DeliverJwtSecret))
+	tkn, err := token.SignedString([]byte(h.Cfg.DeliverJwtSecret))
 	if err != nil {
 		fmt.Printf("newDeliver: generating tokens failed")
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})

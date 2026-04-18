@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	connection "github.com/ZuhybDev/geeyeApp/config"
+	"github.com/ZuhybDev/geeyeApp/db"
 	"github.com/joho/godotenv"
 )
 
@@ -14,9 +16,11 @@ every you need to use Env env
 var ENV *Config
 
 type Config struct {
-	PORT      string
-	DBUrl     string
-	JWTSecret string
+	Query            *db.Queries
+	PORT             string
+	JWTSecret        string
+	DeliverJwtSecret string
+	AdminJwtSecret   string
 }
 
 func Init() {
@@ -27,10 +31,14 @@ func Init() {
 		log.Fatal("Error loading .env file")
 	}
 
+	queries := db.New(connection.DBPool)
+
 	ENV = &Config{
-		PORT:      getEnv("PORT", "3000"),
-		DBUrl:     getEnv("DATABASE_URL", ""),
-		JWTSecret: getEnv("JWT_SECRET", "secret"),
+		Query:            queries,
+		PORT:             getEnv("PORT", "3000"),
+		JWTSecret:        getEnv("JWT_SECRET", "secret"),
+		DeliverJwtSecret: getEnv("DELIVER_JWT_SECRET", "deliverSecret"),
+		AdminJwtSecret:   getEnv("ADMIN_JWT_SECRET", "admdinSecret"),
 	}
 }
 

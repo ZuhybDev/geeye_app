@@ -201,3 +201,34 @@ SELECT * FROM cars WHERE id = $1;
 
 -- name: GetAllCars :many
 SELECT * FROM cars;
+
+-- name: NewDeliver :one
+INSERT INTO deliver (
+  name, password, license_number, national_id, car_id, si_online
+) VALUES (
+  sqlc.arg('name'), 
+  sqlc.arg('password'), 
+  sqlc.arg('license_number'), 
+  sqlc.arg('national_id'), 
+  sqlc.arg('car_id'),
+  sqlc.arg('si_online')
+) RETURNING *;
+
+-- name: UpdateDeliver :one
+UPDATE deliver SET
+   name = coalesce(sqlc.narg(name), name),
+   password = coalesce(sqlc.narg(password), password),
+   license_number = coalesce(sqlc.narg(license_number), license_number),
+   national_id = coalesce(sqlc.narg(national_id), national_id),
+   car_id = coalesce(sqlc.arg(car_id), car_id),
+   si_online = coalesce(sqlc.narg(si_online), si_online)
+WHERE id = $1 RETURNING *;
+
+-- name: GetDeliverById :one
+SELECT * FROM deliver WHERE id = $1;
+
+-- name: DeleteDeliver :exec
+DELETE FROM deliver WHERE id = $1;
+
+-- name: GetAllDeliversData :many
+SELECT * FROM deliver;

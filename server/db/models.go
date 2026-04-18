@@ -26,6 +26,7 @@ type Deliver struct {
 	CarID         pgtype.UUID      `json:"car_id"`
 	CreatedAt     pgtype.Timestamp `json:"created_at"`
 	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+	SiOnline      pgtype.Bool      `json:"si_online"`
 }
 
 type DriverLocation struct {

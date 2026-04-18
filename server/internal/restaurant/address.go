@@ -18,7 +18,7 @@ type ResAddressParam struct {
 	IsDefault  bool    `json:"is_default"`
 }
 
-func (h *ResHandler) CreateResAddress(c fiber.Ctx) error {
+func (h *RestaurantHandler) CreateResAddress(c fiber.Ctx) error {
 
 	// incoming params
 	var resParams ResAddressParam
@@ -76,7 +76,7 @@ func (h *ResHandler) CreateResAddress(c fiber.Ctx) error {
 	// user make newly created is_default = true, make others false else just save it
 
 	if resParams.IsDefault {
-		err := h.app.Query.UpdateDefaultResBranch(c.Context(), resid)
+		err := h.Cfg.Query.UpdateDefaultResBranch(c.Context(), resid)
 		if err != nil {
 			fmt.Printf("DEBUG ERROR return address: %v\n", err)
 			return c.Status(500).JSON(fiber.Map{
@@ -90,7 +90,7 @@ func (h *ResHandler) CreateResAddress(c fiber.Ctx) error {
 		Valid: true,
 	}
 
-	address, err := h.app.Query.CreateResAddress(c.Context(), params)
+	address, err := h.Cfg.Query.CreateResAddress(c.Context(), params)
 
 	if err != nil {
 		fmt.Printf("DEBUG ERROR return address: %v\n", err)
@@ -106,7 +106,7 @@ func (h *ResHandler) CreateResAddress(c fiber.Ctx) error {
 
 }
 
-func (h *ResHandler) GetAdderessById(c fiber.Ctx) error {
+func (h *RestaurantHandler) GetAdderessById(c fiber.Ctx) error {
 
 	resId, err := GetResId(c, h)
 
@@ -117,7 +117,7 @@ func (h *ResHandler) GetAdderessById(c fiber.Ctx) error {
 		})
 	}
 
-	result, err := h.app.Query.GetUserResAddressesById(c.Context(), resId)
+	result, err := h.Cfg.Query.GetUserResAddressesById(c.Context(), resId)
 
 	if err != nil || len(result) == 0 {
 		return c.Status(404).JSON(fiber.Map{
@@ -132,7 +132,7 @@ func (h *ResHandler) GetAdderessById(c fiber.Ctx) error {
 
 }
 
-func (h *ResHandler) UpdateResAddress(c fiber.Ctx) error {
+func (h *RestaurantHandler) UpdateResAddress(c fiber.Ctx) error {
 	//copy of the RessAddressParam
 	var resUpdateParams ResAddressParam
 
@@ -197,7 +197,7 @@ func (h *ResHandler) UpdateResAddress(c fiber.Ctx) error {
 	userResId, err := GetResId(c, h)
 
 	if resUpdateParams.IsDefault {
-		err := h.app.Query.UpdateDefaultResBranch(c.Context(), userResId)
+		err := h.Cfg.Query.UpdateDefaultResBranch(c.Context(), userResId)
 		if err != nil {
 			fmt.Printf("DEBUG ERROR return address: %v\n", err)
 			return c.Status(500).JSON(fiber.Map{
@@ -211,7 +211,7 @@ func (h *ResHandler) UpdateResAddress(c fiber.Ctx) error {
 		Valid: true,
 	}
 
-	result, err := h.app.Query.UpdateResAddress(c.Context(), params)
+	result, err := h.Cfg.Query.UpdateResAddress(c.Context(), params)
 
 	return c.Status(200).JSON(fiber.Map{
 		"message":   "Address successfully updated",
@@ -219,7 +219,7 @@ func (h *ResHandler) UpdateResAddress(c fiber.Ctx) error {
 	})
 }
 
-func (h *ResHandler) DeleteAddress(c fiber.Ctx) error {
+func (h *RestaurantHandler) DeleteAddress(c fiber.Ctx) error {
 
 	paramId := c.Params("id")
 
@@ -232,7 +232,7 @@ func (h *ResHandler) DeleteAddress(c fiber.Ctx) error {
 		})
 	}
 
-	err = h.app.Query.DeleteResAddress(c.Context(), parsedParamId)
+	err = h.Cfg.Query.DeleteResAddress(c.Context(), parsedParamId)
 
 	if err != nil {
 		fmt.Printf("DEBUG ERROR body in address: %v\n", err)

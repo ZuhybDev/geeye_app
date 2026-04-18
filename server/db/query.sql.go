@@ -141,6 +141,15 @@ func (q *Queries) DeleteCar(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
+const deleteDeliver = `-- name: DeleteDeliver :exec
+DELETE FROM deliver WHERE id = $1
+`
+
+func (q *Queries) DeleteDeliver(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteDeliver, id)
+	return err
+}
+
 const deleteProductById = `-- name: DeleteProductById :exec
 DELETE FROM products WHERE id = $1
 `
@@ -205,6 +214,41 @@ func (q *Queries) GetAllCars(ctx context.Context) ([]Car, error) {
 			&i.Color,
 			&i.NumberPlate,
 			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllDeliversData = `-- name: GetAllDeliversData :many
+SELECT id, name, email, password, license_number, national_id, car_id, created_at, updated_at, si_online FROM deliver
+`
+
+func (q *Queries) GetAllDeliversData(ctx context.Context) ([]Deliver, error) {
+	rows, err := q.db.Query(ctx, getAllDeliversData)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Deliver
+	for rows.Next() {
+		var i Deliver
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Email,
+			&i.Password,
+			&i.LicenseNumber,
+			&i.NationalID,
+			&i.CarID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SiOnline,
 		); err != nil {
 			return nil, err
 		}
@@ -281,6 +325,28 @@ func (q *Queries) GetCarBYId(ctx context.Context, id pgtype.UUID) ([]Car, error)
 		return nil, err
 	}
 	return items, nil
+}
+
+const getDeliverById = `-- name: GetDeliverById :one
+SELECT id, name, email, password, license_number, national_id, car_id, created_at, updated_at, si_online FROM deliver WHERE id = $1
+`
+
+func (q *Queries) GetDeliverById(ctx context.Context, id pgtype.UUID) (Deliver, error) {
+	row := q.db.QueryRow(ctx, getDeliverById, id)
+	var i Deliver
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.LicenseNumber,
+		&i.NationalID,
+		&i.CarID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SiOnline,
+	)
+	return i, err
 }
 
 const getProducts = `-- name: GetProducts :one
@@ -488,6 +554,53 @@ func (q *Queries) NewCar(ctx context.Context, arg NewCarParams) (Car, error) {
 	return i, err
 }
 
+const newDeliver = `-- name: NewDeliver :one
+INSERT INTO  deliver (
+  name, password, license_number, national_id, car_id, si_online
+) VALUES (
+  $1, 
+  $2, 
+  $3, 
+  $4, 
+  $5,
+  $6
+) RETURNING id, name, email, password, license_number, national_id, car_id, created_at, updated_at, si_online
+`
+
+type NewDeliverParams struct {
+	Name          string      `json:"name"`
+	Password      string      `json:"password"`
+	LicenseNumber pgtype.Text `json:"license_number"`
+	NationalID    pgtype.Text `json:"national_id"`
+	CarID         pgtype.UUID `json:"car_id"`
+	SiOnline      pgtype.Bool `json:"si_online"`
+}
+
+func (q *Queries) NewDeliver(ctx context.Context, arg NewDeliverParams) (Deliver, error) {
+	row := q.db.QueryRow(ctx, newDeliver,
+		arg.Name,
+		arg.Password,
+		arg.LicenseNumber,
+		arg.NationalID,
+		arg.CarID,
+		arg.SiOnline,
+	)
+	var i Deliver
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.LicenseNumber,
+		&i.NationalID,
+		&i.CarID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SiOnline,
+	)
+	return i, err
+}
+
 const newProduct = `-- name: NewProduct :one
 INSERT INTO products (
 name,
@@ -664,6 +777,53 @@ UPDATE res_addresses SET is_default = false
 func (q *Queries) UpdateDefaultResBranch(ctx context.Context, restaurantID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, updateDefaultResBranch, restaurantID)
 	return err
+}
+
+const updateDeliver = `-- name: UpdateDeliver :one
+UPDATE deliver SET
+   name = coalesce($2, name),
+   password = coalesce($3, password),
+   license_number = coalesce($4, license_number),
+   national_id = coalesce($5, national_id),
+   car_id = coalesce($6, car_id),
+   si_online = coalesce($7, si_online)
+WHERE id = $1 RETURNING id, name, email, password, license_number, national_id, car_id, created_at, updated_at, si_online
+`
+
+type UpdateDeliverParams struct {
+	ID            pgtype.UUID `json:"id"`
+	Name          pgtype.Text `json:"name"`
+	Password      pgtype.Text `json:"password"`
+	LicenseNumber pgtype.Text `json:"license_number"`
+	NationalID    pgtype.Text `json:"national_id"`
+	CarID         pgtype.UUID `json:"car_id"`
+	SiOnline      pgtype.Bool `json:"si_online"`
+}
+
+func (q *Queries) UpdateDeliver(ctx context.Context, arg UpdateDeliverParams) (Deliver, error) {
+	row := q.db.QueryRow(ctx, updateDeliver,
+		arg.ID,
+		arg.Name,
+		arg.Password,
+		arg.LicenseNumber,
+		arg.NationalID,
+		arg.CarID,
+		arg.SiOnline,
+	)
+	var i Deliver
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.LicenseNumber,
+		&i.NationalID,
+		&i.CarID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SiOnline,
+	)
+	return i, err
 }
 
 const updateProduct = `-- name: UpdateProduct :one

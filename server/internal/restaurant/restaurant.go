@@ -14,7 +14,7 @@ type RestParam struct {
 	Name *string `json:"name"`
 }
 
-func (h *ResHandler) NewRestaurent(c fiber.Ctx) error {
+func (h *RestaurantHandler) NewRestaurent(c fiber.Ctx) error {
 
 	// jwt user data
 	user := c.Locals("user").(*middleware.UserPayload)
@@ -33,7 +33,7 @@ func (h *ResHandler) NewRestaurent(c fiber.Ctx) error {
 		})
 	}
 
-	res, err := h.app.Query.NewResTaurant(c.Context(), *restParam.Name)
+	res, err := h.Cfg.Query.NewResTaurant(c.Context(), *restParam.Name)
 
 	if err != nil {
 		c.Status(500).JSON(fiber.Map{
@@ -67,7 +67,7 @@ func (h *ResHandler) NewRestaurent(c fiber.Ctx) error {
 		},
 	}
 
-	_, err = h.app.Query.UpdateUser(c.Context(), params)
+	_, err = h.Cfg.Query.UpdateUser(c.Context(), params)
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
@@ -81,7 +81,7 @@ func (h *ResHandler) NewRestaurent(c fiber.Ctx) error {
 	})
 }
 
-func (h *ResHandler) UpdateRestaurant(c fiber.Ctx) error {
+func (h *RestaurantHandler) UpdateRestaurant(c fiber.Ctx) error {
 
 	var params RestParam
 
@@ -101,7 +101,7 @@ func (h *ResHandler) UpdateRestaurant(c fiber.Ctx) error {
 		})
 	}
 
-	id, err := h.app.Query.CheckRestaurantID(c.Context(), resId)
+	id, err := h.Cfg.Query.CheckRestaurantID(c.Context(), resId)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR UPDATE RESTAURANT: ", err)
@@ -118,7 +118,7 @@ func (h *ResHandler) UpdateRestaurant(c fiber.Ctx) error {
 		dbParams.Name = pgtype.Text{String: *params.Name, Valid: true}
 	}
 
-	res, err := h.app.Query.UpdateRestaurant(c.Context(), dbParams)
+	res, err := h.Cfg.Query.UpdateRestaurant(c.Context(), dbParams)
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "Restaurant updated successfully",
@@ -126,7 +126,7 @@ func (h *ResHandler) UpdateRestaurant(c fiber.Ctx) error {
 	})
 }
 
-func (h *ResHandler) GetRestaurant(c fiber.Ctx) error {
+func (h *RestaurantHandler) GetRestaurant(c fiber.Ctx) error {
 
 	resId, err := GetResId(c, h)
 
@@ -137,7 +137,7 @@ func (h *ResHandler) GetRestaurant(c fiber.Ctx) error {
 		})
 	}
 
-	result, err := h.app.Query.GetRestaurant(c.Context(), resId)
+	result, err := h.Cfg.Query.GetRestaurant(c.Context(), resId)
 
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{
@@ -149,7 +149,7 @@ func (h *ResHandler) GetRestaurant(c fiber.Ctx) error {
 	})
 }
 
-func (h *ResHandler) DeleteRestaurant(c fiber.Ctx) error {
+func (h *RestaurantHandler) DeleteRestaurant(c fiber.Ctx) error {
 
 	userResId, err := GetResId(c, h)
 
@@ -161,7 +161,7 @@ func (h *ResHandler) DeleteRestaurant(c fiber.Ctx) error {
 
 	}
 
-	id, err := h.app.Query.GetUserResById(c.Context(), userResId)
+	id, err := h.Cfg.Query.GetUserResById(c.Context(), userResId)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR: ", err)
@@ -171,7 +171,7 @@ func (h *ResHandler) DeleteRestaurant(c fiber.Ctx) error {
 
 	}
 
-	hasExistId, err := h.app.Query.CheckRestaurantID(c.Context(), id)
+	hasExistId, err := h.Cfg.Query.CheckRestaurantID(c.Context(), id)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR delete restaurant: ", err)
@@ -180,7 +180,7 @@ func (h *ResHandler) DeleteRestaurant(c fiber.Ctx) error {
 		})
 	}
 
-	err = h.app.Query.DeleteRestaurant(c.Context(), hasExistId)
+	err = h.Cfg.Query.DeleteRestaurant(c.Context(), hasExistId)
 
 	if err != nil {
 		fmt.Println("DEGUB ERROR delete restaurant: ")

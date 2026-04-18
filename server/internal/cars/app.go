@@ -1,13 +1,13 @@
 package cars
 
 import (
-	app "github.com/ZuhybDev/geeyeApp/internal"
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
 )
 
 type carHandler struct {
-	app *app.App
+	app *env.Config
 }
 
-func NewCarHandler(a *app.App) *carHandler {
+func NewCarHandler(a *env.Config) *carHandler {
 	return &carHandler{app: a}
 }

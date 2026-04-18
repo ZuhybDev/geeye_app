@@ -8,6 +8,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Admin struct {
+	ID        pgtype.UUID      `json:"id"`
+	Name      string           `json:"name"`
+	Email     string           `json:"email"`
+	Password  string           `json:"password"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+}
+
 type Car struct {
 	ID          pgtype.UUID      `json:"id"`
 	Name        pgtype.Text      `json:"name"`
@@ -26,6 +34,7 @@ type Deliver struct {
 	CarID         pgtype.UUID      `json:"car_id"`
 	CreatedAt     pgtype.Timestamp `json:"created_at"`
 	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+	SiOnline      pgtype.Bool      `json:"si_online"`
 }
 
 type DriverLocation struct {

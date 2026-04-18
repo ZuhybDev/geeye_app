@@ -1,11 +1,13 @@
 package users
 
-import app "github.com/ZuhybDev/geeyeApp/internal"
+import (
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
+)
 
 type UserHandler struct {
-	app *app.App
+	app *env.Config
 }
 
-func NewUserHandler(a *app.App) *UserHandler {
+func NewUserHandler(a *env.Config) *UserHandler {
 	return &UserHandler{app: a}
 }

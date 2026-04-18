@@ -1,11 +1,13 @@
 package products
 
-import app "github.com/ZuhybDev/geeyeApp/internal"
+import (
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
+)
 
 type ProductsHandler struct {
-	app *app.App
+	app *env.Config
 }
 
-func NewProductHandler(a *app.App) *ProductsHandler {
+func NewProductHandler(a *env.Config) *ProductsHandler {
 	return &ProductsHandler{app: a}
 }

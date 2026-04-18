@@ -109,7 +109,7 @@ func (h *UserHandler) NewUser(c fiber.Ctx) error {
 	// 4. Generate JWT using the REAL ID from the database
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tkn, err := token.SignedString([]byte(h.app.JwtSecret))
+	tkn, err := token.SignedString([]byte(h.app.JWTSecret))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
@@ -290,7 +290,7 @@ func (h *UserHandler) Login(c fiber.Ctx) error {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	secret := []byte(h.app.JwtSecret)
+	secret := []byte(h.app.JWTSecret)
 	tkn, err := token.SignedString(secret)
 
 	if err != nil {

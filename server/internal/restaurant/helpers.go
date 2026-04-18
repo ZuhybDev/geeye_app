@@ -10,7 +10,7 @@ import (
 )
 
 // GetResId returns current user restaurant ID
-func GetResId(c fiber.Ctx, h *ResHandler) (pgtype.UUID, error) {
+func GetResId(c fiber.Ctx, h *RestaurantHandler) (pgtype.UUID, error) {
 	localUser := c.Locals("user").(*middleware.UserPayload)
 
 	parsedUserId, err := utils.ParsePGIDs(localUser.ID)
@@ -20,7 +20,7 @@ func GetResId(c fiber.Ctx, h *ResHandler) (pgtype.UUID, error) {
 		return pgtype.UUID{}, err
 	}
 
-	resId, err := h.app.Query.GetUserResById(c.Context(), parsedUserId)
+	resId, err := h.Cfg.Query.GetUserResById(c.Context(), parsedUserId)
 
 	return resId, nil
 }

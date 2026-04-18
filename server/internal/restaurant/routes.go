@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-func RegisterRoutes(api fiber.Router, h *ResHandler) {
+func RegisterRoutes(api fiber.Router, h *RestaurantHandler) {
 
 	// //restaurant
 	api.Post("/restaurant", middleware.AuthMiddleware, h.NewRestaurent)

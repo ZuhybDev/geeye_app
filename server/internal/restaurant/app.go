@@ -1,13 +1,16 @@
 package restaurant
 
 import (
-	app "github.com/ZuhybDev/geeyeApp/internal"
+	env "github.com/ZuhybDev/geeyeApp/envConfig"
 )
 
-type ResHandler struct {
-	app *app.App
+type RestaurantHandler struct {
+	Cfg *env.Config
 }
 
-func NewRestaurantHandler(a *app.App) *ResHandler {
-	return &ResHandler{app: a}
+// Accept the pointer to the entire config
+func NewRestaurantHandler(config *env.Config) *RestaurantHandler {
+	return &RestaurantHandler{
+		Cfg: config,
+	}
 }

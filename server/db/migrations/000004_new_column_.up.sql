@@ -1,0 +1,1 @@
+ALTER TABLE deliver ADD COLUMN si_online BOOLEAN DEFAULT false;

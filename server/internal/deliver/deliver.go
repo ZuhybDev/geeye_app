@@ -87,7 +87,18 @@ func (h *DeliverHandler) NewDeliver(c fiber.Ctx) error {
 		},
 	}
 
-	// fmt.Println(params) //todo
+	checkingParams := db.GetDeliverByIdOrEmailParams{
+		Email: reqParams.Email,
+	}
+
+	_, err = h.Cfg.Query.GetDeliverByIdOrEmail(c.Context(), checkingParams)
+
+	if err == nil {
+		fmt.Printf("Failed to save deliver: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Email already taken",
+		})
+	}
 
 	deliver, err := h.Cfg.Query.NewDeliver(c.Context(), params)
 
@@ -192,19 +203,79 @@ func (h *DeliverHandler) UpdateDeliver(c fiber.Ctx) error {
 		},
 	}
 
-	// fmt.Println(params) //todo
-
 	deliver, err := h.Cfg.Query.UpdateDeliver(c.Context(), params)
 
 	if err != nil {
-		fmt.Printf("Failed to update deliver: %v\n", err)
+		// fmt.Printf("Failed to update deliver: %v\n", err)
 		return c.Status(400).JSON(fiber.Map{
-			"message": "Failed to update deliver data",
+			"message": "User does not exist",
 		})
 	}
 
-	return c.Status(201).JSON(fiber.Map{
+	deliver.Password = ""
+
+	return c.Status(200).JSON(fiber.Map{
 		"message": "Successfully updated driver",
+		"deliver": deliver,
+	})
+
+}
+
+func (h *DeliverHandler) DeleteDelivery(c fiber.Ctx) error {
+	id := c.Params("id")
+
+	deliveryId, err := utils.ParsePGIDs(id)
+
+	if err != nil {
+		fmt.Printf("Failed to hash password: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid user id",
+		})
+	}
+
+	err = h.Cfg.Query.DeleteDeliver(c.Context(), deliveryId)
+
+	if err != nil {
+		fmt.Printf("Failed to hash password: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Account deletion failed",
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Successfully deleted",
+	})
+}
+
+func (h *DeliverHandler) GetDeliver(c fiber.Ctx) error {
+
+	id := c.Params("id")
+
+	parseId, err := utils.ParsePGIDs(id)
+
+	if err != nil {
+		// fmt.Printf("Failed to hash password: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid user id",
+		})
+	}
+
+	checkingParams := db.GetDeliverByIdOrEmailParams{
+		ID: parseId,
+	}
+
+	deliver, err := h.Cfg.Query.GetDeliverByIdOrEmail(c.Context(), checkingParams)
+
+	if err != nil {
+		// fmt.Printf("Failed to hash password: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "User does not exist",
+		})
+	}
+
+	deliver.Password = ""
+
+	return c.Status(200).JSON(fiber.Map{
 		"deliver": deliver,
 	})
 

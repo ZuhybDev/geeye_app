@@ -786,10 +786,11 @@ const updateDeliver = `-- name: UpdateDeliver :one
 UPDATE deliver SET
    name = coalesce($2, name),
    password = coalesce($3, password),
-   license_number = coalesce($4, license_number),
-   national_id = coalesce($5, national_id),
-   car_id = coalesce($6, car_id),
-   si_online = coalesce($7, si_online)
+   email = coalesce($4, email),
+   license_number = coalesce($5, license_number),
+   national_id = coalesce($6, national_id),
+   car_id = coalesce($7, car_id),
+   si_online = coalesce($8, si_online)
 WHERE id = $1 RETURNING id, name, email, password, license_number, national_id, car_id, created_at, updated_at, si_online
 `
 
@@ -797,6 +798,7 @@ type UpdateDeliverParams struct {
 	ID            pgtype.UUID `json:"id"`
 	Name          pgtype.Text `json:"name"`
 	Password      pgtype.Text `json:"password"`
+	Email         pgtype.Text `json:"email"`
 	LicenseNumber pgtype.Text `json:"license_number"`
 	NationalID    pgtype.Text `json:"national_id"`
 	CarID         pgtype.UUID `json:"car_id"`
@@ -808,6 +810,7 @@ func (q *Queries) UpdateDeliver(ctx context.Context, arg UpdateDeliverParams) (D
 		arg.ID,
 		arg.Name,
 		arg.Password,
+		arg.Email,
 		arg.LicenseNumber,
 		arg.NationalID,
 		arg.CarID,

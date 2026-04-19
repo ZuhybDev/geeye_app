@@ -94,7 +94,7 @@ func (h *DeliverHandler) NewDeliver(c fiber.Ctx) error {
 	if err != nil {
 		fmt.Printf("Failed to save deliver: %v\n", err)
 		return c.Status(400).JSON(fiber.Map{
-			"message": "Failed to save data deliver",
+			"message": "Failed to save deliver data",
 		})
 	}
 
@@ -129,6 +129,82 @@ func (h *DeliverHandler) NewDeliver(c fiber.Ctx) error {
 
 	return c.Status(201).JSON(fiber.Map{
 		"message": "Successfully created driver",
+		"deliver": deliver,
+	})
+
+}
+
+type UpdateDeliverParams struct {
+	Name          *string `json:"name"`
+	Email         *string `json:"email"`
+	Password      *string `json:"password"`
+	LicenseNumber *string `json:"license_number"`
+	NationalID    *string `json:"national_id"`
+	CarID         *string `json:"car_id"`
+	SiOnline      bool    `json:"si_online"`
+}
+
+func (h *DeliverHandler) UpdateDeliver(c fiber.Ctx) error {
+
+	var UpdateParams UpdateDeliverParams
+
+	id := c.Params("id")
+
+	parseId, err := utils.ParsePGIDs(id)
+
+	if err := c.Bind().Body(&UpdateParams); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+
+	// hash the password
+	hashedPassword, err := utils.HashedPassword([]byte(*UpdateParams.Password))
+
+	if err != nil {
+		fmt.Printf("Failed to hash password: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	parsedCarId, err := utils.ParsePGIDs(*UpdateParams.CarID)
+
+	if err != nil {
+		fmt.Printf("Failed to parse car id: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid car id",
+		})
+	}
+
+	/// pass the deliver data
+	params := db.UpdateDeliverParams{
+		ID:            parseId,
+		Name:          utils.ToPgTex(UpdateParams.Name),
+		Email:         utils.ToPgTex(UpdateParams.Email),
+		Password:      utils.ToPgTex(&hashedPassword),
+		LicenseNumber: utils.ToPgTex(UpdateParams.LicenseNumber),
+		NationalID:    utils.ToPgTex(UpdateParams.NationalID),
+		CarID:         parsedCarId,
+		SiOnline: pgtype.Bool{
+			Bool:  UpdateParams.SiOnline,
+			Valid: true,
+		},
+	}
+
+	// fmt.Println(params) //todo
+
+	deliver, err := h.Cfg.Query.UpdateDeliver(c.Context(), params)
+
+	if err != nil {
+		fmt.Printf("Failed to update deliver: %v\n", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Failed to update deliver data",
+		})
+	}
+
+	return c.Status(201).JSON(fiber.Map{
+		"message": "Successfully updated driver",
 		"deliver": deliver,
 	})
 

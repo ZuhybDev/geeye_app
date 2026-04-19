@@ -226,8 +226,8 @@ UPDATE deliver SET
    si_online = coalesce(sqlc.narg(si_online), si_online)
 WHERE id = $1 RETURNING *;
 
--- name: GetDeliverById :one
-SELECT * FROM deliver WHERE id = $1;
+-- name: GetDeliverByIdOrEmail :one
+SELECT * FROM deliver WHERE id = $1 OR email = $2;
 
 -- name: DeleteDeliver :exec
 DELETE FROM deliver WHERE id = $1;

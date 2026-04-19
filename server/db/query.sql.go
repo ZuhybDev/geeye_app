@@ -327,12 +327,17 @@ func (q *Queries) GetCarBYId(ctx context.Context, id pgtype.UUID) ([]Car, error)
 	return items, nil
 }
 
-const getDeliverById = `-- name: GetDeliverById :one
-SELECT id, name, email, password, license_number, national_id, car_id, created_at, updated_at, si_online FROM deliver WHERE id = $1
+const getDeliverByIdOrEmail = `-- name: GetDeliverByIdOrEmail :one
+SELECT id, name, email, password, license_number, national_id, car_id, created_at, updated_at, si_online FROM deliver WHERE id = $1 OR email = $2
 `
 
-func (q *Queries) GetDeliverById(ctx context.Context, id pgtype.UUID) (Deliver, error) {
-	row := q.db.QueryRow(ctx, getDeliverById, id)
+type GetDeliverByIdOrEmailParams struct {
+	ID    pgtype.UUID `json:"id"`
+	Email string      `json:"email"`
+}
+
+func (q *Queries) GetDeliverByIdOrEmail(ctx context.Context, arg GetDeliverByIdOrEmailParams) (Deliver, error) {
+	row := q.db.QueryRow(ctx, getDeliverByIdOrEmail, arg.ID, arg.Email)
 	var i Deliver
 	err := row.Scan(
 		&i.ID,

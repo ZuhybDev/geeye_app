@@ -31,6 +31,83 @@ func (q *Queries) CheckRestaurantID(ctx context.Context, id pgtype.UUID) (pgtype
 	return id, err
 }
 
+const createOrder = `-- name: CreateOrder :one
+INSERT INTO orders (
+    user_id,
+    restaurant_id,
+    total_price,
+    pickup_location,
+    dropoff_location,
+    status
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, user_id, deliver_id, restaurant_id, total_price, pickup_location, dropoff_location, status, shipped_at, delivered_at, created_at, updated_at
+`
+
+type CreateOrderParams struct {
+	UserID          pgtype.UUID    `json:"user_id"`
+	RestaurantID    pgtype.UUID    `json:"restaurant_id"`
+	TotalPrice      pgtype.Numeric `json:"total_price"`
+	PickupLocation  pgtype.Text    `json:"pickup_location"`
+	DropoffLocation pgtype.Text    `json:"dropoff_location"`
+	Status          pgtype.Text    `json:"status"`
+}
+
+func (q *Queries) CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error) {
+	row := q.db.QueryRow(ctx, createOrder,
+		arg.UserID,
+		arg.RestaurantID,
+		arg.TotalPrice,
+		arg.PickupLocation,
+		arg.DropoffLocation,
+		arg.Status,
+	)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.DeliverID,
+		&i.RestaurantID,
+		&i.TotalPrice,
+		&i.PickupLocation,
+		&i.DropoffLocation,
+		&i.Status,
+		&i.ShippedAt,
+		&i.DeliveredAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createOrderItem = `-- name: CreateOrderItem :exec
+INSERT INTO order_items (
+    order_id,
+    product_id,
+    quantity,
+    price_at_purchase
+) VALUES (
+    $1, $2, $3, $4
+)
+`
+
+type CreateOrderItemParams struct {
+	OrderID         pgtype.UUID    `json:"order_id"`
+	ProductID       pgtype.UUID    `json:"product_id"`
+	Quantity        int32          `json:"quantity"`
+	PriceAtPurchase pgtype.Numeric `json:"price_at_purchase"`
+}
+
+func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) error {
+	_, err := q.db.Exec(ctx, createOrderItem,
+		arg.OrderID,
+		arg.ProductID,
+		arg.Quantity,
+		arg.PriceAtPurchase,
+	)
+	return err
+}
+
 const createResAddress = `-- name: CreateResAddress :one
 INSERT INTO res_addresses (
   restaurant_id,

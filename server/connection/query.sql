@@ -234,3 +234,25 @@ DELETE FROM deliver WHERE id = $1;
 
 -- name: GetAllDeliversData :many
 SELECT * FROM deliver;
+
+-- name: CreateOrder :one
+INSERT INTO orders (
+    user_id,
+    restaurant_id,
+    total_price,
+    pickup_location,
+    dropoff_location,
+    status
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING *;
+
+-- name: CreateOrderItem :exec
+INSERT INTO order_items (
+    order_id,
+    product_id,
+    quantity,
+    price_at_purchase
+) VALUES (
+    $1, $2, $3, $4
+);

@@ -85,9 +85,14 @@ INSERT INTO order_items (
     order_id,
     product_id,
     quantity,
-    price_at_purchase
+    price_at_purchase,
+    image
 ) VALUES (
-    $1, $2, $3, $4
+$1,
+$2,
+$3,
+$4,
+$5
 )
 `
 
@@ -96,6 +101,7 @@ type CreateOrderItemParams struct {
 	ProductID       pgtype.UUID    `json:"product_id"`
 	Quantity        int32          `json:"quantity"`
 	PriceAtPurchase pgtype.Numeric `json:"price_at_purchase"`
+	Image           pgtype.Text    `json:"image"`
 }
 
 func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) error {
@@ -104,6 +110,7 @@ func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams
 		arg.ProductID,
 		arg.Quantity,
 		arg.PriceAtPurchase,
+		arg.Image,
 	)
 	return err
 }
@@ -453,6 +460,44 @@ func (q *Queries) GetProducts(ctx context.Context, id pgtype.UUID) (Product, err
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getProductsByIDs = `-- name: GetProductsByIDs :many
+SELECT id, price, stock_quantity, (images[1])::text AS images
+FROM products
+WHERE id = ANY($1::uuid[])
+`
+
+type GetProductsByIDsRow struct {
+	ID            pgtype.UUID    `json:"id"`
+	Price         pgtype.Numeric `json:"price"`
+	StockQuantity pgtype.Int4    `json:"stock_quantity"`
+	Images        string         `json:"images"`
+}
+
+func (q *Queries) GetProductsByIDs(ctx context.Context, dollar_1 []pgtype.UUID) ([]GetProductsByIDsRow, error) {
+	rows, err := q.db.Query(ctx, getProductsByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProductsByIDsRow
+	for rows.Next() {
+		var i GetProductsByIDsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Price,
+			&i.StockQuantity,
+			&i.Images,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getRestaurant = `-- name: GetRestaurant :one

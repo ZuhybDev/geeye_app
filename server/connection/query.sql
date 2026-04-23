@@ -252,7 +252,18 @@ INSERT INTO order_items (
     order_id,
     product_id,
     quantity,
-    price_at_purchase
+    price_at_purchase,
+    image
 ) VALUES (
-    $1, $2, $3, $4
+sqlc.arg('order_id'),
+sqlc.arg('product_id'),
+sqlc.arg('quantity'),
+sqlc.arg('price_at_purchase'),
+sqlc.arg('image')
 );
+
+
+-- name: GetProductsByIDs :many
+SELECT id, price, stock_quantity, (images[1])::text AS images
+FROM products
+WHERE id = ANY($1::uuid[]);

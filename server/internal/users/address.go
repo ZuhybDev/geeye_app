@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/ZuhybDev/geeyeApp/db"
-	"github.com/ZuhybDev/geeyeApp/middleware"
 	"github.com/ZuhybDev/geeyeApp/utils"
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -28,9 +27,7 @@ func (h *UserHandler) NewUserAddress(c fiber.Ctx) error {
 		})
 	}
 
-	localUser := c.Locals("user").(*middleware.UserPayload)
-
-	userId, err := utils.ParsePGIDs(localUser.ID)
+	userId, err := utils.GetCurrentUserId(c, h.Cfg.Query)
 
 	// check if the user exist TODO
 
@@ -49,7 +46,7 @@ func (h *UserHandler) NewUserAddress(c fiber.Ctx) error {
 	}
 
 	if addressParams.IsDefault {
-		err := h.app.Query.SetDefaultUserAddress(c.Context(), userId)
+		err := h.Cfg.Query.SetDefaultUserAddress(c.Context(), userId)
 		if err != nil {
 			fmt.Printf("DEBUGING: db setDefault address: %v\n", err)
 			return c.Status(500).JSON(fiber.Map{
@@ -63,7 +60,7 @@ func (h *UserHandler) NewUserAddress(c fiber.Ctx) error {
 		Valid: true,
 	}
 
-	result, err := h.app.Query.CreateUserAddress(c.Context(), params)
+	result, err := h.Cfg.Query.CreateUserAddress(c.Context(), params)
 
 	if err != nil {
 		fmt.Printf("DEBUGING: error returning result address from db")
@@ -107,7 +104,7 @@ func (h *UserHandler) UpdateAddress(c fiber.Ctx) error {
 		})
 	}
 
-	res, err := h.app.Query.GetUserAddress(c.Context(), userId)
+	res, err := h.Cfg.Query.GetUserAddress(c.Context(), userId)
 
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{
@@ -131,7 +128,7 @@ func (h *UserHandler) UpdateAddress(c fiber.Ctx) error {
 	}
 
 	if updateAddress.IsDefault {
-		err := h.app.Query.SetDefaultUserAddress(c.Context(), userId)
+		err := h.Cfg.Query.SetDefaultUserAddress(c.Context(), userId)
 		if err != nil {
 			fmt.Printf("DEBUGING: db setDefault address: %v\n", err)
 			return c.Status(400).JSON(fiber.Map{
@@ -145,7 +142,7 @@ func (h *UserHandler) UpdateAddress(c fiber.Ctx) error {
 		Valid: true,
 	}
 
-	result, err := h.app.Query.UpdateUserAddress(c.Context(), params)
+	result, err := h.Cfg.Query.UpdateUserAddress(c.Context(), params)
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "Successfully udpated user address",
@@ -164,7 +161,7 @@ func (h *UserHandler) GetUserAddresses(c fiber.Ctx) error {
 		})
 	}
 
-	_, err = h.app.Query.GetUserById(c.Context(), curerntUserId)
+	_, err = h.Cfg.Query.GetUserById(c.Context(), curerntUserId)
 
 	if err != nil {
 		fmt.Println("DEBUG ERROR check user existance", err)
@@ -173,7 +170,7 @@ func (h *UserHandler) GetUserAddresses(c fiber.Ctx) error {
 		})
 	}
 
-	restul, err := h.app.Query.GetUserAddress(c.Context(), curerntUserId)
+	restul, err := h.Cfg.Query.GetUserAddress(c.Context(), curerntUserId)
 
 	if err != nil {
 		fmt.Println("DEBUG ERROR get user addresses", err)
@@ -203,7 +200,7 @@ func (h *UserHandler) deleteUserAddress(c fiber.Ctx) error {
 
 	// currentUserId, err := GetUserId(c, h)
 
-	err = h.app.Query.DeleteUserAddress(c.Context(), addressId)
+	err = h.Cfg.Query.DeleteUserAddress(c.Context(), addressId)
 
 	if err != nil {
 		fmt.Println("DEBUG ERROR: delete user address", err)

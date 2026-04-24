@@ -267,3 +267,6 @@ sqlc.arg('image')
 SELECT id, price, stock_quantity, (images[1])::text AS images
 FROM products
 WHERE id = ANY($1::uuid[]);
+
+-- name: GetUserFeedProducts :many
+SELECT * FROM products LIMIT 20;

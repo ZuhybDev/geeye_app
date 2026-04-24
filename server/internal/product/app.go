@@ -5,9 +5,9 @@ import (
 )
 
 type ProductsHandler struct {
-	app *env.Config
+	Cfg *env.Config
 }
 
 func NewProductHandler(a *env.Config) *ProductsHandler {
-	return &ProductsHandler{app: a}
+	return &ProductsHandler{Cfg: a}
 }

@@ -570,6 +570,43 @@ func (q *Queries) GetUserById(ctx context.Context, id pgtype.UUID) (User, error)
 	return i, err
 }
 
+const getUserFeedProducts = `-- name: GetUserFeedProducts :many
+SELECT id, restaurant_id, name, description, price, category, images, stock_quantity, average_rating, total_reviews, created_at, updated_at FROM products LIMIT 20
+`
+
+func (q *Queries) GetUserFeedProducts(ctx context.Context) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getUserFeedProducts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.RestaurantID,
+			&i.Name,
+			&i.Description,
+			&i.Price,
+			&i.Category,
+			&i.Images,
+			&i.StockQuantity,
+			&i.AverageRating,
+			&i.TotalReviews,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserList = `-- name: GetUserList :many
 SELECT id, name, email, password, phone_number, image_url, restaurant_id, created_at, updated_at FROM users ORDER BY name
 `

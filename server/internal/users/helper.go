@@ -21,7 +21,7 @@ func GetResId(c fiber.Ctx, h *UserHandler) (pgtype.UUID, error) {
 		return pgtype.UUID{}, err
 	}
 
-	resId, err := h.app.Query.GetUserResById(c.Context(), parsedUserId)
+	resId, err := h.Cfg.Query.GetUserResById(c.Context(), parsedUserId)
 
 	return resId, nil
 }

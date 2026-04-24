@@ -65,7 +65,6 @@ func (h *Handle) NewUser(c fiber.Ctx) error {
 	})
 }
 
-// ✅ TEST For this
 func TestNewUser(t *testing.T) {
 	mockDB := &dbMock{}
 	h := &Handle{Query: mockDB}

@@ -76,7 +76,7 @@ func (h *ProductsHandler) NewProducts(c fiber.Ctx) error {
 		StockQuantity: pgtype.Int4{Int32: productData.StockQuantity, Valid: true},
 	}
 
-	product, err := h.app.Query.NewProduct(c.Context(), params)
+	product, err := h.Cfg.Query.NewProduct(c.Context(), params)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"message": "Failed to create product",
@@ -126,7 +126,7 @@ func (h *ProductsHandler) UpdateProduct(c fiber.Ctx) error {
 		})
 	}
 
-	products, err := h.app.Query.GetProducts(c.Context(), parsedPrpductId)
+	products, err := h.Cfg.Query.GetProducts(c.Context(), parsedPrpductId)
 
 	if products.RestaurantID != userResId {
 		return c.Status(402).JSON(fiber.Map{
@@ -147,7 +147,7 @@ func (h *ProductsHandler) UpdateProduct(c fiber.Ctx) error {
 		},
 	}
 
-	updatedProduct, err := h.app.Query.UpdateProduct(c.Context(), params)
+	updatedProduct, err := h.Cfg.Query.UpdateProduct(c.Context(), params)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -182,7 +182,7 @@ func (h *ProductsHandler) DeleteProduct(c fiber.Ctx) error {
 		})
 	}
 
-	products, err := h.app.Query.GetProducts(c.Context(), productId)
+	products, err := h.Cfg.Query.GetProducts(c.Context(), productId)
 
 	if !products.ID.Valid {
 		return c.Status(400).JSON(fiber.Map{
@@ -196,7 +196,7 @@ func (h *ProductsHandler) DeleteProduct(c fiber.Ctx) error {
 		})
 	}
 
-	err = h.app.Query.DeleteProductById(c.Context(), productId)
+	err = h.Cfg.Query.DeleteProductById(c.Context(), productId)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -209,7 +209,7 @@ func (h *ProductsHandler) DeleteProduct(c fiber.Ctx) error {
 	})
 }
 
-func (h *ProductsHandler) GetAllProduct(c fiber.Ctx) error {
+func (h *ProductsHandler) GetAllUserProduct(c fiber.Ctx) error {
 
 	restaurantId, err := GetUserResId(c, h)
 
@@ -219,7 +219,7 @@ func (h *ProductsHandler) GetAllProduct(c fiber.Ctx) error {
 		})
 	}
 
-	products, err := h.app.Query.GetAllProducts(c.Context(), restaurantId)
+	products, err := h.Cfg.Query.GetAllProducts(c.Context(), restaurantId)
 
 	if len(products) == 0 {
 		return c.Status(400).JSON(fiber.Map{
@@ -231,4 +231,22 @@ func (h *ProductsHandler) GetAllProduct(c fiber.Ctx) error {
 		"products": products,
 	})
 
+}
+
+func (h *ProductsHandler) UserFeedProducts(c fiber.Ctx) error {
+
+	// TODO implement redis cache for products
+	products, err := h.Cfg.Query.GetUserFeedProducts(c.Context())
+
+	if err != nil {
+		fmt.Printf("Error user feed error: %v", err)
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"products": products,
+		"UserIP":   c.IP(),
+	})
 }

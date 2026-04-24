@@ -17,6 +17,7 @@ func main() {
 	if connection.DBPool == nil {
 		log.Fatal("Failed to connect to DB")
 	}
+	defer connection.DBPool.Close()
 	// init the functions
 	env.Init()
 

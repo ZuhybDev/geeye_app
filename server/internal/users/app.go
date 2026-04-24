@@ -5,9 +5,9 @@ import (
 )
 
 type UserHandler struct {
-	app *env.Config
+	Cfg *env.Config
 }
 
 func NewUserHandler(a *env.Config) *UserHandler {
-	return &UserHandler{app: a}
+	return &UserHandler{Cfg: a}
 }

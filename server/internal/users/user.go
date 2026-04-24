@@ -18,7 +18,7 @@ import (
 func (h *UserHandler) GetListUsers(c fiber.Ctx) error {
 	ctx := c.Context()
 
-	users, err := h.app.Query.GetUserList(ctx)
+	users, err := h.Cfg.Query.GetUserList(ctx)
 	if err != nil {
 		log.Println("Error fetching users:", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Internal server error"})
@@ -48,7 +48,7 @@ func (h *UserHandler) NewUser(c fiber.Ctx) error {
 	}
 
 	//check email
-	_, err := h.app.Query.CheckEmail(c.Context(), req.Email)
+	_, err := h.Cfg.Query.CheckEmail(c.Context(), req.Email)
 
 	if err == nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Email already taken"})
@@ -90,7 +90,7 @@ func (h *UserHandler) NewUser(c fiber.Ctx) error {
 	}
 
 	// 3. Save to Database
-	insertUser, err := h.app.Query.NewUser(c.Context(), params)
+	insertUser, err := h.Cfg.Query.NewUser(c.Context(), params)
 	if err != nil {
 		log.Printf("DB error: %v", err)
 		return c.Status(500).JSON(fiber.Map{"message": "Could not create user"})
@@ -109,7 +109,7 @@ func (h *UserHandler) NewUser(c fiber.Ctx) error {
 	// 4. Generate JWT using the REAL ID from the database
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	tkn, err := token.SignedString([]byte(h.app.JWTSecret))
+	tkn, err := token.SignedString([]byte(h.Cfg.JWTSecret))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
@@ -160,7 +160,7 @@ func (h *UserHandler) UpdateUser(c fiber.Ctx) error {
 		Bytes: parsedId,
 		Valid: true,
 	}
-	_, err = h.app.Query.GetUserById(c.Context(), dbId) // check only if its exist
+	_, err = h.Cfg.Query.GetUserById(c.Context(), dbId) // check only if its exist
 
 	if err != nil {
 		log.Println("Error fetching user function:", err)
@@ -208,7 +208,7 @@ func (h *UserHandler) UpdateUser(c fiber.Ctx) error {
 		params.RestaurantID = pgtype.UUID{Bytes: parsedID, Valid: true}
 	}
 
-	_, err = h.app.Query.UpdateUser(c.Context(), params)
+	_, err = h.Cfg.Query.UpdateUser(c.Context(), params)
 
 	if err != nil {
 		log.Println("Error Updating user:", err)
@@ -232,7 +232,7 @@ func (h *UserHandler) DeleteUser(c fiber.Ctx) error {
 		Valid: true,
 	}
 
-	_, err = h.app.Query.GetUserById(c.Context(), dbId)
+	_, err = h.Cfg.Query.GetUserById(c.Context(), dbId)
 
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{
@@ -242,7 +242,7 @@ func (h *UserHandler) DeleteUser(c fiber.Ctx) error {
 
 	// delete function
 
-	err = h.app.Query.DeleteUser(c.Context(), dbId)
+	err = h.Cfg.Query.DeleteUser(c.Context(), dbId)
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User successfully deleted",
@@ -267,7 +267,7 @@ func (h *UserHandler) Login(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"message": "Email and password required"})
 	}
 
-	res, err := h.app.Query.UserLogin(c.Context(), lgnUser.Email)
+	res, err := h.Cfg.Query.UserLogin(c.Context(), lgnUser.Email)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid credentials"})
@@ -290,7 +290,7 @@ func (h *UserHandler) Login(c fiber.Ctx) error {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	secret := []byte(h.app.JWTSecret)
+	secret := []byte(h.Cfg.JWTSecret)
 	tkn, err := token.SignedString(secret)
 
 	if err != nil {

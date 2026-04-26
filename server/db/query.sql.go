@@ -21,6 +21,20 @@ func (q *Queries) CheckEmail(ctx context.Context, email string) (string, error) 
 	return email, err
 }
 
+const checkOrderItems = `-- name: CheckOrderItems :one
+SELECT EXISTS (
+  SELECT 1 FROM order_items
+  WHERE order_id = $1
+)
+`
+
+func (q *Queries) CheckOrderItems(ctx context.Context, orderID pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, checkOrderItems, orderID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkRestaurantID = `-- name: CheckRestaurantID :one
 SELECT id FROM restaurants WHERE id = $1
 `
@@ -231,6 +245,24 @@ DELETE FROM deliver WHERE id = $1
 
 func (q *Queries) DeleteDeliver(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteDeliver, id)
+	return err
+}
+
+const deleteOrder = `-- name: DeleteOrder :exec
+DELETE FROM orders WHERE id = $1
+`
+
+func (q *Queries) DeleteOrder(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteOrder, id)
+	return err
+}
+
+const deleteOrderItems = `-- name: DeleteOrderItems :exec
+DELETE FROM order_items WHERE id = $1
+`
+
+func (q *Queries) DeleteOrderItems(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteOrderItems, id)
 	return err
 }
 
@@ -992,6 +1024,46 @@ func (q *Queries) UpdateDeliver(ctx context.Context, arg UpdateDeliverParams) (D
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.SiOnline,
+	)
+	return i, err
+}
+
+const updateOrder = `-- name: UpdateOrder :one
+UPDATE orders SET
+     pickup_location = coalesce($2, pickup_location),
+     dropoff_location = coalesce($3, dropoff_location),
+     status = coalesce($4, status)
+WHERE id = $1 RETURNING id, user_id, deliver_id, restaurant_id, total_price, pickup_location, dropoff_location, status, shipped_at, delivered_at, created_at, updated_at
+`
+
+type UpdateOrderParams struct {
+	ID              pgtype.UUID `json:"id"`
+	PickupLocation  pgtype.Text `json:"pickup_location"`
+	DropoffLocation pgtype.Text `json:"dropoff_location"`
+	Status          pgtype.Text `json:"status"`
+}
+
+func (q *Queries) UpdateOrder(ctx context.Context, arg UpdateOrderParams) (Order, error) {
+	row := q.db.QueryRow(ctx, updateOrder,
+		arg.ID,
+		arg.PickupLocation,
+		arg.DropoffLocation,
+		arg.Status,
+	)
+	var i Order
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.DeliverID,
+		&i.RestaurantID,
+		&i.TotalPrice,
+		&i.PickupLocation,
+		&i.DropoffLocation,
+		&i.Status,
+		&i.ShippedAt,
+		&i.DeliveredAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

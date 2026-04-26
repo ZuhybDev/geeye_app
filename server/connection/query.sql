@@ -283,3 +283,9 @@ DELETE FROM order_items WHERE id = $1;
 
 -- name: DeleteOrder :exec
 DELETE FROM orders WHERE id = $1;
+
+-- name: CheckOrderItems :one
+SELECT EXISTS (
+  SELECT 1 FROM order_items
+  WHERE order_id = $1
+);

@@ -21,6 +21,20 @@ func (q *Queries) CheckEmail(ctx context.Context, email string) (string, error) 
 	return email, err
 }
 
+const checkOrderItems = `-- name: CheckOrderItems :one
+SELECT EXISTS (
+  SELECT 1 FROM order_items
+  WHERE order_id = $1
+)
+`
+
+func (q *Queries) CheckOrderItems(ctx context.Context, orderID pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, checkOrderItems, orderID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const checkRestaurantID = `-- name: CheckRestaurantID :one
 SELECT id FROM restaurants WHERE id = $1
 `

@@ -186,13 +186,45 @@ func (h *OrderHandler) DeleteOrder(c fiber.Ctx) error {
 	})
 }
 
-// func (h *OrderHandler) DeleteOrderItems(c fiber.Ctx) error {
+type DeleteParams struct {
+	OrderId string `json:"order_id"`
+	Status  string `json:"status"`
+}
 
-// 	id, err := utils.ParsePGIDs(c.Params("id"))
+func (h *OrderHandler) DeleteOrderItems(c fiber.Ctx) error {
 
-// 	if err != nil {
-// 		fmt.Printf("Error search params: %s\n", err)
-// 		return c.Status(400).JSON("Internal server error")
-// 	}
+	var deleteReq DeleteParams
 
-// }
+	if err := c.Bind().Body(&deleteReq); err != nil {
+		return c.Status(400).JSON("invalid request body")
+	}
+
+	id, err := utils.ParsePGIDs(c.Params("id"))
+	if err != nil {
+		return c.Status(400).JSON("invalid id param")
+	}
+
+	orderid, err := utils.ParsePGIDs(deleteReq.OrderId)
+	if err != nil {
+		return c.Status(400).JSON("invalid order id")
+	}
+
+	status := deleteReq.Status
+	if status == "" {
+		status = "Cancelled"
+	}
+
+	params := db.UpdateOrderParams{
+		ID:     orderid,
+		Status: utils.ToPgTex(&status),
+	}
+
+	if err := h.DeleteOrderItemsTx(c.Context(), id, orderid, params); err != nil {
+		fmt.Println(err)
+		return c.Status(500).JSON("failed to delete order items")
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "items successfully deleted",
+	})
+}
